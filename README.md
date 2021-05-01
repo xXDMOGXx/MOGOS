@@ -1,7 +1,7 @@
 # MOGOS
 A custom ComputerCraft GUI based Operating System entirely designed and developed by DMOG
 The name is a merge between DMOG and OS, hence MOGOS
-Any OS files and seperate programs relating to the MOGOS OS environment will be posted here
+Any OS files and seperate programs relating to the MOGOS environment will be posted here
 
 This is a current very heavy WIP
 Milestones and releases are showcased and explained on my YouTube channel at https://www.youtube.com/channel/UC55WbvBuB1ENqmYOXvtweGg
