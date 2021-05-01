@@ -4,6 +4,7 @@ The name is a merge between DMOG and OS, hence MOGOS.
 Any OS files and seperate programs relating to the MOGOS environment will be posted here.
 
 This is a current very heavy WIP.
+Highly experimental code is posted and worked with on Pastebin at https://pastebin.com/u/xXDMOGXx. More stable code is the posted here.
 Milestones and releases are showcased and explained on my YouTube channel at https://www.youtube.com/channel/UC55WbvBuB1ENqmYOXvtweGg.
 A lot of the code will be without comments until I decide to take the time to add them. Sorry not sorry.
 
