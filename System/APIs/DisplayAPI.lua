@@ -8,7 +8,7 @@ end
 
 local function readFileData(path, line)
 	local file = fs.open(path,"r")
-	local data = nil
+	local data
 	if (line == "all") then
 		data = file.readAll()
 	else
@@ -37,11 +37,11 @@ function saveImage(path, x, y, w, z, isSelImage)
 	local bColorX = w or 0
 	local bColorY = z or 0
 	local isFullImage = isSelImage or false
-	local color = nil
-	local nextColor = nil
+	local color
+	local nextColor
 	local numColor = 1
 	local file = fs.open(path,"w")
-	if not (isSelImage) then
+	if not (isFullImage) then
 		for column = 1, SettingsAPI.sizeY do
 			local isBreak = false
 			for row = 1, SettingsAPI.sizeX do
