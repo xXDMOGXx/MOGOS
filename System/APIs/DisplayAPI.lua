@@ -1,5 +1,3 @@
--- !!Unfinished!!
-
 function log(message)
 	term.redirect(SettingsAPI._old)
 	print(message)
