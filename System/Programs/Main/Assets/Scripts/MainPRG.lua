@@ -12,10 +12,10 @@
 -- 8. Create specialized versions of the OS designed to use only 1 program
 -- 9. Create Custom Engine for making programs on my OS. This will allow anyone with the OS installed on the computer to make programs
 
-os.loadAPI("MOGOS/System/APIs/SettingsAPI")
-os.loadAPI("MOGOS/System/APIs/DisplayAPI")
+os.loadAPI("MOGOS/System/APIs/SettingsAPI.lua")
+os.loadAPI("MOGOS/System/APIs/DisplayAPI.lua")
 local isRunning = true
-local mainMapPath = "MOGOS/System/Programs/Main/Assets/Maps/main.map"
+local mainMapPath = "MOGOS/System/Programs/Main/Assets/Maps/mainMAP"
 
 function Exit()
     isRunning = false
