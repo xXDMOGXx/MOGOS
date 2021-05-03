@@ -15,9 +15,9 @@ local isRunning = true
 local currentScreen = "paint"
 local DEFAULT_SAVE_DIRECTORY = "MOGOS/User/"..SettingsAPI.user.."/Storage/Images/"
 local saveDirectory = DEFAULT_SAVE_DIRECTORY
-local mainMapPath = "MOGOS/System/Programs/Paint/Assets/Maps/paint.map"
-local tempPicSave = "MOGOS/System/Programs/Paint/Assets/Saves/temp.cpic"
-local tempSetSave = "MOGOS/System/Programs/Paint/Assets/Saves/temp.settings"
+local mainMapPath = "MOGOS/System/Programs/Paint/Assets/Maps/paintMAP"
+local tempPicSave = "MOGOS/System/Programs/Paint/Assets/Saves/tempIMG"
+local tempSetSave = "MOGOS/System/Programs/Paint/Assets/Saves/tempSET"
 local tempSaveMode = 0
 
 local function drawPaintMap()
