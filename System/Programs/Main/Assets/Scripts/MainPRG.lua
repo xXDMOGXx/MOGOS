@@ -33,7 +33,7 @@ function switchMode()
     DisplayAPI.replaceGUI(mainMapPath)
     term.setCursorPos(10, 1)
     term.setTextColor(1)
-    print("("..SettingsAPI.sizeX..", "..SettingsAPI.sizeY.."): MonitorMode = "..SettingsAPI.monitorMode)
+    print("("..SettingsAPI.sizeX..", "..SettingsAPI.sizeY.."): MonitorMode = "..tostring(SettingsAPI.monitorMode))
     term.setCursorPos(0, 0)
 end
 
