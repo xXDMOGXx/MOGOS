@@ -9,7 +9,7 @@ function switchMonitor()
         SettingsAPI.monitorMode = false
     else
         SettingsAPI.monitor = peripheral.wrap("top")
-        SettingsAPI._old = term.redirect(monitor)
+        SettingsAPI._old = term.redirect(SettingsAPI.monitor)
         SettingsAPI.monitor.setTextScale(.5)
         SettingsAPI.sizeX, SettingsAPI.sizeY = term.getSize()
         SettingsAPI.monitorMode = true
