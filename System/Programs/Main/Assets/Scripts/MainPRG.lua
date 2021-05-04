@@ -16,6 +16,7 @@ os.loadAPI("MOGOS/System/APIs/SettingsAPI.lua")
 os.loadAPI("MOGOS/System/APIs/DisplayAPI.lua")
 local isRunning = true
 local mainMapPath = "MOGOS/System/Programs/Main/Assets/Maps/mainMAP"
+local isMonitor = false
 
 function Exit()
     isRunning = false
@@ -29,7 +30,13 @@ end
 
 function switchMode()
     DisplayAPI.clearGUI()
-    SettingsAPI.switchMonitor()
+    if (isMonitor) then
+        SettingsAPI.usingMonitor(false)
+        isMonitor = false
+    else
+        SettingsAPI.usingMonitor(true)
+        isMonitor = true
+    end
     DisplayAPI.replaceGUI(mainMapPath)
     term.setCursorPos(10, 1)
     term.setTextColor(1)
