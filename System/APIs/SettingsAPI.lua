@@ -6,7 +6,7 @@ sizeX, sizeY = term.getSize()
 function switchMonitor()
     if (monitorMode) then
         term.redirect(_old)
-        SettingsAPI.monitorMode = false
+        monitorMode = false
     else
         monitor = peripheral.wrap("top")
         _old = term.redirect(monitor)
