@@ -3,15 +3,16 @@ monitor = nil
 _old = nil
 sizeX, sizeY = term.getSize()
 
-function usingMonitor(bool)
-    monitorMode = bool
-    if (bool) then
---        term.redirect(_old)
+function switchMonitor()
+    if (SettingsAPI.monitorMode) then
+        term.redirect(_old)
+        SettingsAPI.monitorMode = false
     else
         monitor = peripheral.wrap("top")
---        _old = term.redirect(monitor)
---        monitor.setTextScale(.5)
---        sizeX, sizeY = term.getSize()
+        _old = term.redirect(monitor)
+        monitor.setTextScale(.5)
+        sizeX, sizeY = term.getSize()
+        SettingsAPI.monitorMode = true
     end
 end
 
