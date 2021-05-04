@@ -5,13 +5,13 @@ sizeX, sizeY = term.getSize()
 
 function switchMonitor()
     if (SettingsAPI.monitorMode) then
-        term.redirect(_old)
+        term.redirect(SettingsAPI._old)
         SettingsAPI.monitorMode = false
     else
-        monitor = peripheral.wrap("top")
-        _old = term.redirect(monitor)
-        monitor.setTextScale(.5)
-        sizeX, sizeY = term.getSize()
+        SettingsAPI.monitor = peripheral.wrap("top")
+        SettingsAPI._old = term.redirect(monitor)
+        SettingsAPI.monitor.setTextScale(.5)
+        SettingsAPI.sizeX, SettingsAPI.sizeY = term.getSize()
         SettingsAPI.monitorMode = true
     end
 end
