@@ -184,7 +184,6 @@ function loadImage(path, x, y, isFake, line, isOPos, isPaint)
 			local numberPos = loc - (lastLetterPos + 1)
 			local numberString = string.sub(imageString, loc - numberPos, loc - 1)
 			local number = tonumber(numberString)
-			local arrayEndX = x + arraySizeX
 			local arrayEndY = y + arraySizeY
 			while (number > 0) and (onScreen) do
 				if not (addColor == 0) then
