@@ -1,16 +1,15 @@
 function log(message)
-	term.redirect(SettingsAPI._old)
-	print(message)
-	SettingsAPI._old = term.redirect(SettingsAPI.monitor)
+	term.native().write(message)
 end
 
 local function readFileData(path, line)
+	local line = line or "all"
 	local file = fs.open(path,"r")
 	local data
 	if (line == "all") then
 		data = file.readAll()
 	else
-		for i = 1, line do
+		for _ = 1, line do
 			data = file.readLine()
 		end
 	end

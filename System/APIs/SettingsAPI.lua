@@ -1,17 +1,14 @@
 monitorMode = false
-monitor = nil
-_old = nil
+monitor = peripheral.wrap("top")
 sizeX, sizeY = term.getSize()
 
 function switchMonitor()
     if (monitorMode) then
-        term.redirect(_old)
+        term.redirect(term.native())
         monitorMode = false
     else
-        monitor = peripheral.wrap("top")
-        _old = term.redirect(monitor)
+        term.redirect(monitor)
         monitor.setTextScale(.5)
-        sizeX, sizeY = term.getSize()
         monitorMode = true
     end
 end

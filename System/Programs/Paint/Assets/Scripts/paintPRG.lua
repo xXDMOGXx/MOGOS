@@ -31,7 +31,9 @@ local function drawPaintMap()
 end
 
 local function resetPaintMap()
+	SettingsAPI.paintMap = {}
 	for row = 1, SettingsAPI.sizeX do
+		SettingsAPI.paintMap[row] = {}
 		for column = 1, SettingsAPI.sizeY do
 			SettingsAPI.paintMap[row][column] = 0
 		end

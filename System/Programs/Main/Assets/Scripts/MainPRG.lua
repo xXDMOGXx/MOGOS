@@ -5,12 +5,12 @@
 -- 2. Create an Installer
 -- 3. Add a File System GUI with selection, deletion, and moving
 -- 4. Add Settings
--- O. Recode my paint program to fit in with new gui display and optimize loading for more versatile image position placement
+-- 5. Recode my paint program to fit in with new gui display and optimize loading for more versatile image position placement
 -- 6. Add default programs to come with the computer, or be installed like an app store?
--- 6. Program Ideas: A Clock, Wireless Multiplayer Pong, Casino Games, Pixel RPG
--- 7. Allow putting apps on a desktop with personalized background
--- 8. Create specialized versions of the OS designed to use only 1 program
--- 9. Create Custom Engine for making programs on my OS. This will allow anyone with the OS installed on the computer to make programs
+-- 7. Program Ideas: A Clock, Wireless Multiplayer Chess, Casino Games, Pixel RPG
+-- 8. Allow putting apps on a desktop with personalized background
+-- 9. Create specialized versions of the OS designed to use only 1 program
+-- 10. Create Custom Engine for making programs on the OS. This will allow anyone with the OS installed on the computer to make programs
 
 os.loadAPI("MOGOS/System/APIs/SettingsAPI.lua")
 os.loadAPI("MOGOS/System/APIs/DisplayAPI.lua")
@@ -30,6 +30,7 @@ end
 function switchMode()
     DisplayAPI.clearGUI()
     SettingsAPI.switchMonitor()
+    SettingsAPI.sizeX, SettingsAPI.sizeY = term.getSize()
     DisplayAPI.replaceGUI(mainMapPath)
 end
 
