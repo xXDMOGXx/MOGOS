@@ -12,6 +12,7 @@ local currentSlot = "None"
 local DEFAULT_BACKGROUND_COLOR = 1
 local backgroundColor = DEFAULT_BACKGROUND_COLOR
 local isRunning = true
+local allowedPaint = true
 local currentScreen = "paint"
 local DEFAULT_SAVE_DIRECTORY = "MOGOS/User/"..SettingsAPI.user.."/Storage/Images/"
 local saveDirectory = DEFAULT_SAVE_DIRECTORY
@@ -156,6 +157,7 @@ end
 
 function swapScreen(screen)
 	if (screen == "settings") then
+		allowedPaint = false
 		DisplayAPI.replaceGUI(mainMapPath, 2)
 		currentScreen = "settings"
 		paintutils.drawFilledBox(10, 2, 20, 2, 256)
@@ -169,6 +171,7 @@ function swapScreen(screen)
 			paintutils.drawPixel(sX1, sY1, selectColor1)
 			paintutils.drawPixel(sX2, sY2, selectColor2)
 		end
+		allowedPaint = true
 	end
 end
 
@@ -251,8 +254,8 @@ end
 
 local function Touch()
 	while isRunning do
-		local event, extra, x, y = os.pullEvent()
-		if (event == "monitor_touch") or (event == "mouse_click") or (event == "mouse_drag") then
+		local event, _, x, y = os.pullEvent()
+		if (event == "monitor_touch") or (event == "mouse_click") then
 			if not (SettingsAPI.functionMap[x][y] == 0 or SettingsAPI.functionMap[x][y] == nil) then
 				local func, param = DisplayAPI.findParam(SettingsAPI.functionMap[x][y])
 				if (param == nil) then
@@ -260,7 +263,11 @@ local function Touch()
 				else
 					_ENV[func](param)
 				end
-			elseif (y > 5) then
+			elseif (y > 5) and allowedPaint then
+				paint(x, y)
+			end
+		elseif (event == "mouse_drag") then
+			if (y > 5) and allowedPaint then
 				paint(x, y)
 			end
 		end
