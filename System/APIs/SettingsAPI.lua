@@ -1,3 +1,4 @@
+overrideFuncions = false
 monitorMode = false
 monitor = peripheral.wrap("top")
 sizeX, sizeY = term.getSize()
@@ -14,24 +15,27 @@ function switchMonitor()
 end
 
 isLowSpace = false
+user = "xXDMOGXx"
 colorMap = {}
 textMap = {}
 functionMap = {}
-paintMap = {}
+overrideFunctionMap = {}
 imageMap = {}
-user = "xXDMOGXx"
+paintMap = {}
 
 for row = 1, sizeX do
     colorMap[row] = {}
     textMap[row]= {}
     functionMap[row] = {}
-    paintMap[row] = {}
+    overrideFunctionMap[row] = {}
     imageMap[row] = {}
+    paintMap[row] = {}
     for column = 1, sizeY do
         colorMap[row][column] = 0
         textMap[row][column] = 0
         functionMap[row][column] = 0
-        paintMap[row][column] = 0
+        overrideFunctionMap[row][column] = 0
         imageMap[row][column] = 0
+        paintMap[row][column] = 0
     end
 end

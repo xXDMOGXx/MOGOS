@@ -36,10 +36,15 @@ end
 
 local function Touch()
     while isRunning do
-        local event, extra, x, y = os.pullEvent()
+        local event, _, x, y = os.pullEvent()
         if (event == "monitor_touch") or (event == "mouse_click") then
             if not (SettingsAPI.functionMap[x][y] == 0 or SettingsAPI.functionMap[x][y] == nil) then
-                local func, param = DisplayAPI.findParam(SettingsAPI.functionMap[x][y])
+                local func, param = ""
+                if (SettingsAPI.overrideFunctions) and not (SettingsAPI.overrideFunctionMap[x][y] == 0 or SettingsAPI.overrideFunctionMap[x][y] == nil) then
+                    func, param = DisplayAPI.findParam(SettingsAPI.overrideFunctionMap[x][y])
+                else
+                    func, param = DisplayAPI.findParam(SettingsAPI.functionMap[x][y])
+                end
                 if (param == nil) then
                     _ENV[func]()
                 else

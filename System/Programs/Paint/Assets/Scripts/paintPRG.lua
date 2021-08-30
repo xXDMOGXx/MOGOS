@@ -55,6 +55,16 @@ local function redraw()
 	drawPaintMap()
 end
 
+local function loadSettings()
+	if (fs.exists(tempSetSave)) then
+		tempSaveMode = DisplayAPI.readFileData(tempSetSave, 1)
+		saveDirectory = DisplayAPI.readFileData(tempSetSave, 2)
+		color1 = DisplayAPI.readFileData(tempSetSave, 3)
+		color2 = DisplayAPI.readFileData(tempSetSave, 4)
+		backgroundColor = DisplayAPI.readFileData(tempSetSave, 5)
+	end
+end
+
 local function paint(x, y)
 	if (currentTool == "Color 1") then
 		paintutils.drawPixel(x, y, color1)
@@ -257,7 +267,12 @@ local function Touch()
 		local event, _, x, y = os.pullEvent()
 		if (event == "monitor_touch") or (event == "mouse_click") then
 			if not (SettingsAPI.functionMap[x][y] == 0 or SettingsAPI.functionMap[x][y] == nil) then
-				local func, param = DisplayAPI.findParam(SettingsAPI.functionMap[x][y])
+				local func, param = ""
+				if (SettingsAPI.overrideFunctions) and not (SettingsAPI.overrideFunctionMap[x][y] == 0 or SettingsAPI.overrideFunctionMap[x][y] == nil) then
+					func, param = DisplayAPI.findParam(SettingsAPI.overrideFunctionMap[x][y])
+				else
+					func, param = DisplayAPI.findParam(SettingsAPI.functionMap[x][y])
+				end
 				if (param == nil) then
 					_ENV[func]()
 				else
@@ -277,6 +292,10 @@ end
 local function Start()
 	resetPaintMap()
 	redraw()
+	loadSettings()
+	if (fs.exists(tempPicSave)) then
+		DisplayAPI.loadImage(tempPicSave)
+	end
 	Touch()
 end
 
