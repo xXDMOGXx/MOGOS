@@ -1,6 +1,6 @@
 overrideFuncions = false
 monitorMode = false
-monitor = peripheral.wrap("top")
+monitor = nil
 sizeX, sizeY = term.getSize()
 
 function switchMonitor()
@@ -8,6 +8,7 @@ function switchMonitor()
         term.redirect(term.native())
         monitorMode = false
     else
+        monitor = peripheral.wrap("top")
         term.redirect(monitor)
         monitor.setTextScale(.5)
         monitorMode = true

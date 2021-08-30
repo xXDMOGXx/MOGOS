@@ -57,11 +57,24 @@ end
 
 local function loadSettings()
 	if (fs.exists(tempSetSave)) then
-		tempSaveMode = DisplayAPI.readFileData(tempSetSave, 1)
-		saveDirectory = DisplayAPI.readFileData(tempSetSave, 2)
-		color1 = DisplayAPI.readFileData(tempSetSave, 3)
-		color2 = DisplayAPI.readFileData(tempSetSave, 4)
-		backgroundColor = DisplayAPI.readFileData(tempSetSave, 5)
+-- 		tempSaveMode = tonumber(DisplayAPI.readFileData(tempSetSave, 1))
+--		saveDirectory = DisplayAPI.readFileData(tempSetSave, 2)
+--		color1 = tonumber(DisplayAPI.readFileData(tempSetSave, 3))
+--		color2 = tonumber(DisplayAPI.readFileData(tempSetSave, 4))
+--		backgroundColor = tonumber(DisplayAPI.readFileData(tempSetSave, 5))
+	end
+end
+
+local function saveSettings()
+	local file = fs.open(tempSetSave,"w")
+	file.writeLine(tempSaveMode)
+	file.writeLine(saveDirectory)
+	file.writeLine(color1)
+	file.writeLine(color2)
+	file.writeLine(backgroundColor)
+	file.close()
+	if not (DisplayAPI.emptyCheck()) then
+		DisplayAPI.saveImage(tempPicSave)
 	end
 end
 
@@ -186,10 +199,10 @@ function swapScreen(screen)
 end
 
 function Exit()
-	isRunning = false
 	if (tempSaveMode > 0) then
-		DisplayAPI.saveImage(tempPicSave)
+		saveSettings()
 	end
+	isRunning = false
 end
 
 function resetToDefaults()
@@ -266,13 +279,15 @@ local function Touch()
 	while isRunning do
 		local event, _, x, y = os.pullEvent()
 		if (event == "monitor_touch") or (event == "mouse_click") then
-			if not (SettingsAPI.functionMap[x][y] == 0 or SettingsAPI.functionMap[x][y] == nil) then
-				local func, param = ""
-				if (SettingsAPI.overrideFunctions) and not (SettingsAPI.overrideFunctionMap[x][y] == 0 or SettingsAPI.overrideFunctionMap[x][y] == nil) then
-					func, param = DisplayAPI.findParam(SettingsAPI.overrideFunctionMap[x][y])
+			if (SettingsAPI.overrideFunctions) and not (SettingsAPI.overrideFunctionMap[x][y] == 0 or SettingsAPI.overrideFunctionMap[x][y] == nil) then
+				local func, param = DisplayAPI.findParam(SettingsAPI.overrideFunctionMap[x][y])
+				if (param == nil) then
+					_ENV[func]()
 				else
-					func, param = DisplayAPI.findParam(SettingsAPI.functionMap[x][y])
+					_ENV[func](param)
 				end
+			elseif not (SettingsAPI.overrideFunctions) and not (SettingsAPI.functionMap[x][y] == 0 or SettingsAPI.functionMap[x][y] == nil) then
+				local func, param = DisplayAPI.findParam(SettingsAPI.functionMap[x][y])
 				if (param == nil) then
 					_ENV[func]()
 				else
@@ -280,21 +295,27 @@ local function Touch()
 				end
 			elseif (y > 5) and allowedPaint then
 				paint(x, y)
+				if (tempSaveMode == 2) then
+					saveSettings()
+				end
 			end
 		elseif (event == "mouse_drag") then
 			if (y > 5) and allowedPaint then
 				paint(x, y)
+				if (tempSaveMode == 2) then
+					saveSettings()
+				end
 			end
 		end
 	end
 end
 
 local function Start()
+	loadSettings()
 	resetPaintMap()
 	redraw()
-	loadSettings()
 	if (fs.exists(tempPicSave)) then
-		DisplayAPI.loadImage(tempPicSave)
+		DisplayAPI.loadImage(tempPicSave, 1, 1, false, "all", true, true)
 	end
 	Touch()
 end
