@@ -1,8 +1,3 @@
-overrideFuncions = false
-monitorMode = false
-monitor = nil
-sizeX, sizeY = term.getSize()
-
 function switchMonitor()
     if (monitorMode) then
         term.redirect(term.native())
@@ -15,7 +10,15 @@ function switchMonitor()
     end
 end
 
+overrideFuncions = false
+monitorMode = false
+monitor = nil
+sizeX, sizeY = term.getSize()
 isLowSpace = false
+DEFAULT_BACKGROUND_COLOR = 1
+backroundColor = DEFAULT_BACKGROUND_COLOR
+DEFAULT_ACCENT_COLOR = 256
+accent_color = DEFAULT_ACCENT_COLOR
 user = "xXDMOGXx"
 colorMap = {}
 textMap = {}

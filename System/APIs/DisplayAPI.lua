@@ -284,9 +284,16 @@ local function decompressMap(dataString)
 						SettingsAPI.imageMap[tPosX][tPosY] = value
 					end
 				else
-					numberPos = loc - (lastLetterPos + 1)
-					valueString = string.sub(dataString, loc - numberPos, loc - 1)
-					value = tonumber(valueString)
+					value = 0
+					if (string.sub(dataString, lastLetterPos + 1, lastLetterPos + 1)) == "\"" then
+						numberPos = loc - (lastLetterPos + 2)
+						valueString = string.sub(dataString, loc - numberPos, loc - 2)
+						value = _ENV[valueString]()
+					else
+						numberPos = loc - (lastLetterPos + 1)
+						valueString = string.sub(dataString, loc - numberPos, loc - 1)
+						value = tonumber(valueString)
+					end
 					for row = tPosX, bPosX do
 						for column = tPosY, bPosY do
 							SettingsAPI.colorMap[row][column] = value
