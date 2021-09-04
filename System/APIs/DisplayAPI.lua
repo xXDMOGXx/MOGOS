@@ -284,7 +284,6 @@ local function decompressMap(dataString)
 						SettingsAPI.imageMap[tPosX][tPosY] = value
 					end
 				else
-					value = 0
 					if (string.sub(dataString, lastLetterPos + 1, lastLetterPos + 1)) == "\"" then
 						local numberPos = loc - (lastLetterPos + 2)
 						local valueString = string.sub(dataString, loc - numberPos, loc - 2)
@@ -370,6 +369,7 @@ local function drawMaps()
 				local lastIndicatorPos = 0
 				local textColor = 0
 				local backgroundColor = 0
+				local value
 				for loc = 1, stringLength do
 					local char = string.sub(SettingsAPI.textMap[row][column], loc, loc)
 					if (char == "`") then
@@ -379,7 +379,14 @@ local function drawMaps()
 						backgroundColor = string.sub(SettingsAPI.textMap[row][column], loc + 1, stringLength)
 					end
 				end
-				local value = string.sub(SettingsAPI.textMap[row][column], 1, lastIndicatorPos - 1)
+				if string.sub(SettingsAPI.textMap[row][column], 1, 1) == "*" then
+					local valueString = string.sub(SettingsAPI.textMap[row][column], 2, lastIndicatorPos - 1)
+					local valueFunc = load("return "..valueString)
+					setfenv(valueFunc, getfenv())
+					value = valueFunc()
+				else
+					value = string.sub(SettingsAPI.textMap[row][column], 1, lastIndicatorPos - 1)
+				end
 				term.setTextColor(tonumber(textColor))
 				term.setBackgroundColor(tonumber(backgroundColor))
 				term.setCursorPos(row, column)
