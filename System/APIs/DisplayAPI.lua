@@ -232,18 +232,18 @@ function loadImage(path, x, y, isFake, line, isOPos, isPaint)
 end
 
 local function decompressMap(dataString)
-	stringLength = #dataString
-	lastLetterPos = 0
-	lastLetter = nil
-	firstValue = true
-	inQuotes = false
-	tPosX = 0
-	tPosY = 0
-	bPosX = 0
-	bPosY = 0
-	value = nil
+	local stringLength = #dataString
+	local lastLetterPos = 0
+	local lastLetter
+	local firstValue = true
+	local inQuotes = false
+	local tPosX = 0
+	local tPosY = 0
+	local bPosX = 0
+	local bPosY = 0
+	local value
 	for loc = 1, stringLength do
-		char = string.sub(dataString, loc, loc)
+		local char = string.sub(dataString, loc, loc)
 		if (tonumber(char) == nil) and not (char == "-") then
 			if (tPosX < 0) then
 				tPosX = (SettingsAPI.sizeX + tPosX) + 1
@@ -269,8 +269,8 @@ local function decompressMap(dataString)
 				end
 			elseif (char == "X" or char == "E") and not (inQuotes) then
 				if (lastLetter == "T" or lastLetter == "F" or lastLetter == "I") then
-					numberPos = loc - (lastLetterPos + 2)
-					valueString = string.sub(dataString, loc - numberPos, loc - 2)
+					local numberPos = loc - (lastLetterPos + 2)
+					local valueString = string.sub(dataString, loc - numberPos, loc - 2)
 					value = valueString
 					if (lastLetter == "T") then
 						SettingsAPI.textMap[tPosX][tPosY] = value
@@ -286,12 +286,14 @@ local function decompressMap(dataString)
 				else
 					value = 0
 					if (string.sub(dataString, lastLetterPos + 1, lastLetterPos + 1)) == "\"" then
-						numberPos = loc - (lastLetterPos + 2)
-						valueString = string.sub(dataString, loc - numberPos, loc - 2)
-						value = _ENV[valueString]()
+						local numberPos = loc - (lastLetterPos + 2)
+						local valueString = string.sub(dataString, loc - numberPos, loc - 2)
+						local valueFunc = load("return "..valueString)
+						setfenv(valueFunc, getfenv())
+						value = valueFunc()
 					else
-						numberPos = loc - (lastLetterPos + 1)
-						valueString = string.sub(dataString, loc - numberPos, loc - 1)
+						local numberPos = loc - (lastLetterPos + 1)
+						local valueString = string.sub(dataString, loc - numberPos, loc - 1)
 						value = tonumber(valueString)
 					end
 					for row = tPosX, bPosX do
@@ -303,9 +305,9 @@ local function decompressMap(dataString)
 				lastLetter = "X"
 				lastLetterPos = loc
 			elseif not (inQuotes) then
-				numberPos = loc - (lastLetterPos + 1)
-				numberString = string.sub(dataString, loc - numberPos, loc - 1)
-				number = tonumber(numberString)
+				local numberPos = loc - (lastLetterPos + 1)
+				local numberString = string.sub(dataString, loc - numberPos, loc - 1)
+				local number = tonumber(numberString)
 				lastLetterPos = loc
 				if (char == "Y") then
 					tPosX = number
@@ -335,11 +337,11 @@ local function decompressMap(dataString)
 end
 
 function findParam(dataString)
-	stringLength = #dataString
-	func = nil
-	param = nil
+	local stringLength = #dataString
+	local func
+	local param
 	for loc = 1, stringLength do
-		char = string.sub(dataString, loc, loc)
+		local char = string.sub(dataString, loc, loc)
 		if (char == "(") then
 			if (stringLength - loc > 1) then
 				param = string.sub(dataString, loc + 1, stringLength - 1)
@@ -369,7 +371,7 @@ local function drawMaps()
 				local textColor = 0
 				local backgroundColor = 0
 				for loc = 1, stringLength do
-					char = string.sub(SettingsAPI.textMap[row][column], loc, loc)
+					local char = string.sub(SettingsAPI.textMap[row][column], loc, loc)
 					if (char == "`") then
 						lastIndicatorPos = loc
 					elseif (char == "~") then
