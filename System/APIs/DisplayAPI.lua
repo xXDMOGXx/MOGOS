@@ -235,6 +235,7 @@ local function decompressMap(dataString)
 	local stringLength = #dataString
 	local lastLetterPos = 0
 	local lastLetter
+	local lastTextSymbol
 	local firstValue = true
 	local inQuotes = false
 	local tPosX = 0
@@ -267,11 +268,19 @@ local function decompressMap(dataString)
 				else
 					inQuotes = true
 				end
+			elseif (char == "*") then
+				lastTextSymbol = loc
 			elseif (char == "X" or char == "E") and not (inQuotes) then
 				if (lastLetter == "T" or lastLetter == "F" or lastLetter == "I") then
-					local numberPos = loc - (lastLetterPos + 2)
-					local valueString = string.sub(dataString, loc - numberPos, loc - 2)
-					value = valueString
+					if (string.sub(dataString, lastLetterPos + 2, lastLetterPos + 2)) == "*" then
+						local valueString = string.sub(dataString, lastLetterPos + 3, lastTextSymbol - 1)
+						local valueFunc = load("return "..valueString)
+						setfenv(valueFunc, getfenv())
+						value = valueFunc(),string.sub(dataString, lastTextSymbol, loc - 2)
+					else
+						local valueString = string.sub(dataString, lastLetterPos + 2, loc - 2)
+						value = valueString
+					end
 					if (lastLetter == "T") then
 						SettingsAPI.textMap[tPosX][tPosY] = value
 					elseif (lastLetter == "F") then
@@ -285,14 +294,19 @@ local function decompressMap(dataString)
 					end
 				else
 					if (string.sub(dataString, lastLetterPos + 1, lastLetterPos + 1)) == "\"" then
-						local numberPos = loc - (lastLetterPos + 2)
-						local valueString = string.sub(dataString, loc - numberPos, loc - 2)
+						local valueString = string.sub(dataString, lastLetterPos + 2, loc - 2)
 						local valueFunc = load("return "..valueString)
 						setfenv(valueFunc, getfenv())
 						value = valueFunc()
+						if (type(value) == "boolean") then
+							if value then
+								value = 8192
+							else
+								value = 16384
+							end
+						end
 					else
-						local numberPos = loc - (lastLetterPos + 1)
-						local valueString = string.sub(dataString, loc - numberPos, loc - 1)
+						local valueString = string.sub(dataString, lastLetterPos + 1, loc - 1)
 						value = tonumber(valueString)
 					end
 					for row = tPosX, bPosX do
