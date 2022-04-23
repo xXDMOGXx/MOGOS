@@ -1,6 +1,6 @@
--- This is an OS for ComputerCraft. It's my first time, so please be gentle (On the criticism)
+-- This is an OS for ComputerCraft. It's my first time, so please be gentle (On the criticism). Suggestions for improvement are appreciated though
 -- !!While this line is here, this OS is an extreme work in progress!!
--- TO DO:
+-- TO DO (Not in any specific order):
 -- 1. Move Functions into separate corresponding API's
 -- 2. Create an Installer
 -- 3. Add a File System GUI with selection, deletion, and moving
@@ -15,7 +15,7 @@
 os.loadAPI("MOGOS/System/APIs/SettingsAPI.lua")
 os.loadAPI("MOGOS/System/APIs/DisplayAPI.lua")
 local isRunning = true
-local mainMapPath = "MOGOS/System/Programs/Main/Assets/Maps/mainMAP"
+local mainMapPath = "MOGOS/System/Programs/Main/Assets/Maps/main.map"
 
 function Exit()
     isRunning = false
@@ -24,7 +24,7 @@ end
 
 function Open(path)
     shell.run(path)
-    --	DisplayAPI.replaceGUI(mainMapPath)
+--    DisplayAPI.replaceGUI(mainMapPath)
 end
 
 function switchMode()
@@ -34,7 +34,7 @@ function switchMode()
     DisplayAPI.replaceGUI(mainMapPath)
 end
 
-local function Touch()
+local function touch()
     while isRunning do
         local event, _, x, y = os.pullEvent()
         if (event == "monitor_touch") or (event == "mouse_click") then
@@ -43,17 +43,20 @@ local function Touch()
                 setfenv(func, getfenv())
                 func()
             elseif not (SettingsAPI.overrideFunctions) and not (SettingsAPI.functionMap[x][y] == 0 or SettingsAPI.functionMap[x][y] == nil) then
+                DisplayAPI.drawText(SettingsAPI.functionMap[x][y], 1, 7, 1, 128)
                 local func = load(SettingsAPI.functionMap[x][y])
+                DisplayAPI.drawText(func, 1, 8, 1, 128)
                 setfenv(func, getfenv())
+                DisplayAPI.drawText(func, 1, 9, 1, 128)
                 func()
             end
         end
     end
 end
 
-local function Start()
+local function start()
     DisplayAPI.replaceGUI(mainMapPath)
-    Touch()
+    touch()
 end
 
-Start()
+start()

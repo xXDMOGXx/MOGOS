@@ -16,9 +16,10 @@ local allowedPaint = true
 local currentScreen = "paint"
 local DEFAULT_SAVE_DIRECTORY = "MOGOS/User/"..SettingsAPI.user.."/Storage/Images/"
 local saveDirectory = DEFAULT_SAVE_DIRECTORY
-local mainMapPath = "MOGOS/System/Programs/Paint/Assets/Maps/paintMAP"
-local tempPicSave = "MOGOS/System/Programs/Paint/Assets/Saves/tempIMG"
-local tempSetSave = "MOGOS/System/Programs/Paint/Assets/Saves/tempSET"
+local mainMapPath = "MOGOS/System/Programs/Paint/Assets/Maps/paint.map"
+local picExt = ".cpic"
+local tempPicSave = "MOGOS/System/Programs/Paint/Assets/Saves/temp"..picExt
+local tempSetSave = "MOGOS/System/Programs/Paint/Assets/Saves/temp.set"
 local tempSaveMode = 0
 
 local function drawPaintMap()
@@ -128,7 +129,7 @@ local function paint(x, y)
 			selectColor2 = 0
 		end
 	elseif (currentTool == "Load") then
-		DisplayAPI.loadImage(saveDirectory..currentSlot, x, y, false, "all", false, true)
+		DisplayAPI.loadImage(saveDirectory..currentSlot..picExt, x, y, false, "all", false, true)
 	end
 end
 
@@ -239,11 +240,11 @@ end
 function save()
 	if not (currentSlot == "None") and not (DisplayAPI.emptyCheck()) then
 		if (selectStage == 2) then
-			DisplayAPI.saveImage(saveDirectory..currentSlot, math.min(sX1, sX2), math.min(sY1, sY2), math.max(sX1, sX2),  math.max(sY1, sY2), true)
+			DisplayAPI.saveImage(saveDirectory..currentSlot..picExt, math.min(sX1, sX2), math.min(sY1, sY2), math.max(sX1, sX2),  math.max(sY1, sY2), true)
 			paintutils.drawFilledBox(10, 2, 20, 2, 256)
 			DisplayAPI.drawText("Saved", 10, 2, 1, 128)
 		else
-			DisplayAPI.saveImage(saveDirectory..currentSlot)
+			DisplayAPI.saveImage(saveDirectory..currentSlot..picExt)
 			paintutils.drawFilledBox(10, 2, 20, 2, 256)
 			DisplayAPI.drawText("Saved", 10, 2, 1, 128)
 		end
@@ -252,10 +253,10 @@ end
 
 function load(mode)
 	if not (currentSlot == "None") then
-		if (fs.exists(saveDirectory..currentSlot)) then
+		if (fs.exists(saveDirectory..currentSlot..picExt)) then
 			if (mode == "new") then
 				swapScreen("paint")
-				DisplayAPI.loadImage(saveDirectory..currentSlot, 1, 1, false, "all", true, true)
+				DisplayAPI.loadImage(saveDirectory..currentSlot..picExt, 1, 1, false, "all", true, true)
 			elseif (mode == "add") then
 				currentTool = "Load"
 				swapScreen("paint")
@@ -275,7 +276,7 @@ function wipeSlot()
 	end
 end
 
-local function Touch()
+local function touch()
 	while isRunning do
 		local event, _, x, y = os.pullEvent()
 		if (event == "monitor_touch") or (event == "mouse_click") then
@@ -284,8 +285,11 @@ local function Touch()
 				setfenv(func, getfenv())
 				func()
 			elseif not (SettingsAPI.overrideFunctions) and not (SettingsAPI.functionMap[x][y] == 0 or SettingsAPI.functionMap[x][y] == nil) then
-				local func = load(SettingsAPI.functionMap[x][y])
+				DisplayAPI.drawText(SettingsAPI.functionMap[x][y], 1, 7, 1, 128)
+				local func = load("Exit()")
+				DisplayAPI.drawText(func, 1, 9, 1, 128)
 				setfenv(func, getfenv())
+				DisplayAPI.drawText(func, 1, 10, 1, 128)
 				func()
 			elseif (y > 5) and allowedPaint then
 				paint(x, y)
@@ -304,14 +308,14 @@ local function Touch()
 	end
 end
 
-local function Start()
+local function start()
 	loadSettings()
 	resetPaintMap()
 	redraw()
 	if (fs.exists(tempPicSave)) then
 		DisplayAPI.loadImage(tempPicSave, 1, 1, false, "all", true, true)
 	end
-	Touch()
+	touch()
 end
 
-Start()
+start()
