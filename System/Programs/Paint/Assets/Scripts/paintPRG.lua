@@ -269,8 +269,8 @@ function load(mode)
 end
 
 function wipeSlot()
-	if (fs.exists(saveDirectory..currentSlot)) and not (currentSlot == "None") then
-		fs.delete(saveDirectory..currentSlot)
+	if (fs.exists(saveDirectory..currentSlot..picExt)) and not (currentSlot == "None") then
+		fs.delete(saveDirectory..currentSlot..picExt)
 		paintutils.drawFilledBox(10, 2, 20, 2, 256)
 		DisplayAPI.drawText("Wiped", 10, 2, 1, 128)
 	end
