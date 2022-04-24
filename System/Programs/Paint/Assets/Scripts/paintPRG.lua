@@ -182,12 +182,12 @@ end
 function swapScreen(screen)
 	if (screen == "settings") then
 		allowedPaint = false
+		if not (currentTool == "Load") then currentSlot = "None" end
 		DisplayAPI.replaceGUI(mainMapPath, 2)
 		currentScreen = "settings"
 		paintutils.drawFilledBox(10, 2, 20, 2, 256)
 		DisplayAPI.drawText(currentSlot, 10, 2, 1, 128)
 	elseif (screen == "paint") then
-		currentSlot = "None"
 		redraw()
 		currentScreen = "paint"
 		if (selectStage == 1) then
