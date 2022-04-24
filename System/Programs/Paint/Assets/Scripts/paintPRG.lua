@@ -187,6 +187,7 @@ function swapScreen(screen)
 		paintutils.drawFilledBox(10, 2, 20, 2, 256)
 		DisplayAPI.drawText(currentSlot, 10, 2, 1, 128)
 	elseif (screen == "paint") then
+		currentSlot = "None"
 		redraw()
 		currentScreen = "paint"
 		if (selectStage == 1) then
