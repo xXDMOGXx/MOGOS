@@ -24,7 +24,7 @@ end
 
 function Open(path)
     shell.run(path)
---    DisplayAPI.replaceGUI(mainMapPath)
+    DisplayAPI.replaceGUI(mainMapPath)
 end
 
 function switchMode()

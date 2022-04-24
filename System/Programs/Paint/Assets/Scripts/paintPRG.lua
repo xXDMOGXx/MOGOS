@@ -281,13 +281,13 @@ local function touch()
 		local event, _, x, y = os.pullEvent()
 		if (event == "monitor_touch") or (event == "mouse_click") then
 			if (SettingsAPI.overrideFunctions) and not (SettingsAPI.overrideFunctionMap[x][y] == 0 or SettingsAPI.overrideFunctionMap[x][y] == nil) then
-				local func = load(SettingsAPI.overrideFunctionMap[x][y])
-				setfenv(func, getfenv())
-				func()
+				local func, param = DisplayAPI.findParam(SettingsAPI.functionMap[x][y])
+				if (param == nil) then _ENV[func]()
+				else _ENV[func](param) end
 			elseif not (SettingsAPI.overrideFunctions) and not (SettingsAPI.functionMap[x][y] == 0 or SettingsAPI.functionMap[x][y] == nil) then
-				local func = load(SettingsAPI.functionMap[x][y])
-				setfenv(func, getfenv())
-				func()
+				local func, param = DisplayAPI.findParam(SettingsAPI.functionMap[x][y])
+				if (param == nil) then _ENV[func]()
+				else _ENV[func](param) end
 			elseif (y > 5) and allowedPaint then
 				paint(x, y)
 				if (tempSaveMode == 2) then
