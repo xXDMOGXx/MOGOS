@@ -22,6 +22,13 @@ local tempPicSave = "MOGOS/System/Programs/Paint/Assets/Saves/temp"..picExt
 local tempSetSave = "MOGOS/System/Programs/Paint/Assets/Saves/temp.set"
 local tempSaveMode = 0
 
+function Exit()
+	if (tempSaveMode > 0) then
+		saveSettings()
+	end
+	isRunning = false
+end
+
 local function drawPaintMap()
 	for row = 1, SettingsAPI.sizeX do
 		for column = 1, SettingsAPI.sizeY do
@@ -77,6 +84,37 @@ local function saveSettings()
 	if not (DisplayAPI.emptyCheck()) then
 		DisplayAPI.saveImage(tempPicSave)
 	end
+end
+
+function swapScreen(screen)
+	if (screen == "settings") then
+		allowedPaint = false
+		if not (currentTool == "Load") then currentSlot = "None" end
+		DisplayAPI.replaceGUI(mainMapPath, 2)
+		currentScreen = "settings"
+		paintutils.drawFilledBox(10, 2, 20, 2, 256)
+		DisplayAPI.drawText(currentSlot, 10, 2, 1, 128)
+	elseif (screen == "paint") then
+		redraw()
+		currentScreen = "paint"
+		if (selectStage == 1) then
+			paintutils.drawPixel(sX1, sY1, selectColor1)
+		elseif (selectStage == 2) then
+			paintutils.drawPixel(sX1, sY1, selectColor1)
+			paintutils.drawPixel(sX2, sY2, selectColor2)
+		end
+		allowedPaint = true
+	end
+end
+
+function resetToDefaults()
+	resetPaintMap()
+	color1 = DEFAULT_COLOR_1
+	color2 = DEFAULT_COLOR_2
+	currentTool = DEFAULT_TOOL
+	backgroundColor = DEFAULT_BACKGROUND_COLOR
+	currentSlot = "None"
+	swapScreen("paint")
 end
 
 local function paint(x, y)
@@ -179,43 +217,14 @@ function selectTool(tool)
 	DisplayAPI.drawText(currentTool, 40, 5, 1, 128)
 end
 
-function swapScreen(screen)
-	if (screen == "settings") then
-		allowedPaint = false
-		if not (currentTool == "Load") then currentSlot = "None" end
-		DisplayAPI.replaceGUI(mainMapPath, 2)
-		currentScreen = "settings"
-		paintutils.drawFilledBox(10, 2, 20, 2, 256)
-		DisplayAPI.drawText(currentSlot, 10, 2, 1, 128)
-	elseif (screen == "paint") then
-		redraw()
-		currentScreen = "paint"
-		if (selectStage == 1) then
-			paintutils.drawPixel(sX1, sY1, selectColor1)
-		elseif (selectStage == 2) then
-			paintutils.drawPixel(sX1, sY1, selectColor1)
-			paintutils.drawPixel(sX2, sY2, selectColor2)
-		end
-		allowedPaint = true
+function selectColor(color)
+	if (currentTool == "Color 1") then
+		color1 = tonumber(color)
+	elseif (currentTool == "Color 2") then
+		color2 = tonumber(color)
+	else
+		backgroundColor = tonumber(color)
 	end
-end
-
-function Exit()
-	if (tempSaveMode > 0) then
-		saveSettings()
-	end
-	isRunning = false
-end
-
-function resetToDefaults()
-	resetPaintMap()
-	color1 = DEFAULT_COLOR_1
-	color2 = DEFAULT_COLOR_2
-	currentTool = DEFAULT_TOOL
-	backgroundColor = DEFAULT_BACKGROUND_COLOR
-	saveDirectory = DEFAULT_SAVE_DIRECTORY
-	currentSlot = "None"
-	redraw()
 end
 
 function selectSlot(slot)
@@ -228,13 +237,11 @@ function selectSlot(slot)
 	DisplayAPI.drawText(currentSlot, 10, 2, 1, 128)
 end
 
-function selectColor(color)
-	if (currentTool == "Color 1") then
-		color1 = tonumber(color)
-	elseif (currentTool == "Color 2") then
-		color2 = tonumber(color)
-	else
-		backgroundColor = tonumber(color)
+function wipeSlot()
+	if (fs.exists(saveDirectory..currentSlot..picExt)) and not (currentSlot == "None") then
+		fs.delete(saveDirectory..currentSlot..picExt)
+		paintutils.drawFilledBox(10, 2, 20, 2, 256)
+		DisplayAPI.drawText("Wiped", 10, 2, 1, 128)
 	end
 end
 
@@ -255,7 +262,7 @@ end
 function load(mode)
 	if not (currentSlot == "None") then
 		if (fs.exists(saveDirectory..currentSlot..picExt)) then
-			if (mode == "new") then
+			if (mode == "reg") then
 				swapScreen("paint")
 				DisplayAPI.loadImage(saveDirectory..currentSlot..picExt, 1, 1, false, "all", true, true)
 			elseif (mode == "add") then
@@ -266,14 +273,6 @@ function load(mode)
 			paintutils.drawFilledBox(10, 2, 20, 2, 256)
 			DisplayAPI.drawText("Empty", 10, 2, 1, 128)
 		end
-	end
-end
-
-function wipeSlot()
-	if (fs.exists(saveDirectory..currentSlot..picExt)) and not (currentSlot == "None") then
-		fs.delete(saveDirectory..currentSlot..picExt)
-		paintutils.drawFilledBox(10, 2, 20, 2, 256)
-		DisplayAPI.drawText("Wiped", 10, 2, 1, 128)
 	end
 end
 

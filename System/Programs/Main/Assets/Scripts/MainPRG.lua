@@ -22,15 +22,15 @@ function Exit()
     DisplayAPI.clearGUI()
 end
 
-function Open(path)
-    shell.run(path)
-    DisplayAPI.replaceGUI(mainMapPath)
-end
-
 function switchMode()
     DisplayAPI.clearGUI()
     SettingsAPI.switchMonitor()
     SettingsAPI.sizeX, SettingsAPI.sizeY = term.getSize()
+    DisplayAPI.replaceGUI(mainMapPath)
+end
+
+function Open(path)
+    shell.run(path)
     DisplayAPI.replaceGUI(mainMapPath)
 end
 
