@@ -17,6 +17,22 @@ local function readFileData(path, line)
 	return data
 end
 
+function findParam(dataString)
+	local stringLength = #dataString
+	local func
+	local param
+	for loc = 1, stringLength do
+		local char = string.sub(dataString, loc, loc)
+		if (char == "(") then
+			if (stringLength - loc > 1) then
+				param = string.sub(dataString, loc + 1, stringLength - 1)
+			end
+			func = string.sub(dataString, 1, loc -1)
+		end
+	end
+	return func, param
+end
+
 function emptyCheck()
 	for row = 1, SettingsAPI.sizeX do
 		for column = 1, SettingsAPI.sizeY do
@@ -231,11 +247,26 @@ function loadImage(path, x, y, isFake, line, isOPos, isPaint)
 	term.setCursorPos(0, 0)
 end
 
+function drawText(text, x, y, textColor, backgroundColor)
+	term.setCursorPos(x, y)
+	term.setTextColor(textColor)
+	if (backgroundColor == "keep") then
+		for i = 1, #text do
+			term.setBackgroundColor(SettingsAPI.colorMap[x][y])
+			local char = string.sub(text, i, i)
+			term.write(char)
+		end
+	else
+		term.setBackgroundColor(backgroundColor)
+		term.write(text)
+	end
+	term.setCursorPos(0, 0)
+end
+
 local function decompressMap(dataString)
 	local stringLength = #dataString
 	local lastLetterPos = 0
 	local lastLetter
-	local lastTextSymbol
 	local firstValue = true
 	local inQuotes = false
 	local tPosX = 0
@@ -268,19 +299,10 @@ local function decompressMap(dataString)
 				else
 					inQuotes = true
 				end
-			elseif (char == "*") then
-				lastTextSymbol = loc
 			elseif (char == "X" or char == "E") and not (inQuotes) then
 				if (lastLetter == "T" or lastLetter == "F" or lastLetter == "I") then
-					if (string.sub(dataString, lastLetterPos + 2, lastLetterPos + 2)) == "*" then
-						local valueString = string.sub(dataString, lastLetterPos + 3, lastTextSymbol - 1)
-						local valueFunc = load("return "..valueString)
-						setfenv(valueFunc, getfenv())
-						value = valueFunc(),string.sub(dataString, lastTextSymbol, loc - 2)
-					else
-						local valueString = string.sub(dataString, lastLetterPos + 2, loc - 2)
-						value = valueString
-					end
+					local valueString = string.sub(dataString, lastLetterPos + 2, loc - 2)
+					value = valueString
 					if (lastLetter == "T") then
 						SettingsAPI.textMap[tPosX][tPosY] = value
 					elseif (lastLetter == "F") then
@@ -293,22 +315,8 @@ local function decompressMap(dataString)
 						SettingsAPI.imageMap[tPosX][tPosY] = value
 					end
 				else
-					if (string.sub(dataString, lastLetterPos + 1, lastLetterPos + 1)) == "\"" then
-						local valueString = string.sub(dataString, lastLetterPos + 2, loc - 2)
-						local valueFunc = load("return "..valueString)
-						setfenv(valueFunc, getfenv())
-						value = valueFunc()
-						if (type(value) == "boolean") then
-							if value then
-								value = 8192
-							else
-								value = 16384
-							end
-						end
-					else
-						local valueString = string.sub(dataString, lastLetterPos + 1, loc - 1)
-						value = tonumber(valueString)
-					end
+					local valueString = string.sub(dataString, lastLetterPos + 1, loc - 1)
+					value = valueString
 					for row = tPosX, bPosX do
 						for column = tPosY, bPosY do
 							SettingsAPI.colorMap[row][column] = value
@@ -349,64 +357,67 @@ local function decompressMap(dataString)
 	end
 end
 
-function findParam(dataString)
-	local stringLength = #dataString
-	local func
-	local param
-	for loc = 1, stringLength do
-		local char = string.sub(dataString, loc, loc)
-		if (char == "(") then
-			if (stringLength - loc > 1) then
-				param = string.sub(dataString, loc + 1, stringLength - 1)
-			end
-			func = string.sub(dataString, 1, loc -1)
-		end
-	end
-	return func, param
-end
-
 local function drawMaps()
+	local value
 	for row = 1, SettingsAPI.sizeX do
 		for column = 1, SettingsAPI.sizeY do
 			if not (SettingsAPI.colorMap[row][column] == 0) then
-				paintutils.drawPixel(row, column, SettingsAPI.colorMap[row][column])
+				local dataString = SettingsAPI.colorMap[row][column]
+				if (string.sub(dataString, 1, 1) == "\"") then
+					local valueString = string.sub(dataString, 2, -2)
+					local valueVar = load("return "..valueString)
+					setfenv(valueVar, getfenv())
+					value = valueVar()
+					if (type(value) == "boolean") then
+						if value then value = 8192
+						else value = 16384 end
+					end
+				else
+					value = tonumber(dataString)
+				end
+				paintutils.drawPixel(row, column, value)
 			end
 			if not (SettingsAPI.imageMap[row][column] == 0) then
-				loadImage(SettingsAPI.imageMap[row][column], row, column)
+				local dataString = SettingsAPI.imageMap[row][column]
+				if string.sub(dataString, 1, 1) == "*" then
+					local valueString = string.sub(dataString, 2, -1)
+					local valueVar = load("return "..valueString)
+					setfenv(valueVar, getfenv())
+					value = valueVar()
+				else
+					value = dataString
+				end
+				loadImage(value, row, column)
 			end
 		end
 	end
 	for row = 1, SettingsAPI.sizeX do
 		for column = 1, SettingsAPI.sizeY do
 			if not (SettingsAPI.textMap[row][column] == 0) then
-				local stringLength = #SettingsAPI.textMap[row][column]
+				local dataString = SettingsAPI.textMap[row][column]
+				local stringLength = #dataString
 				local lastIndicatorPos = 0
 				local textColor = 0
 				local backgroundColor = 0
 				local value
 				for loc = 1, stringLength do
-					local char = string.sub(SettingsAPI.textMap[row][column], loc, loc)
+					local char = string.sub(dataString, loc, loc)
 					if (char == "`") then
 						lastIndicatorPos = loc
 					elseif (char == "~") then
-						textColor = string.sub(SettingsAPI.textMap[row][column], lastIndicatorPos + 1, loc - 1)
-						backgroundColor = string.sub(SettingsAPI.textMap[row][column], loc + 1, stringLength)
+						textColor = string.sub(dataString, lastIndicatorPos + 1, loc - 1)
+						backgroundColor = string.sub(dataString, loc + 1, stringLength)
 					end
 				end
-				if string.sub(SettingsAPI.textMap[row][column], 1, 1) == "*" then
-					local valueString = string.sub(SettingsAPI.textMap[row][column], 2, lastIndicatorPos - 1)
-					local valueFunc = load("return "..valueString)
-					setfenv(valueFunc, getfenv())
-					value = valueFunc()
+				if string.sub(dataString, 1, 1) == "*" then
+					local valueString = string.sub(dataString, 2, lastIndicatorPos - 1)
+					local valueVar = load("return "..valueString)
+					setfenv(valueVar, getfenv())
+					value = valueVar()
 				else
-					value = string.sub(SettingsAPI.textMap[row][column], 1, lastIndicatorPos - 1)
+					value = string.sub(dataString, 1, lastIndicatorPos - 1)
 				end
-				term.setTextColor(tonumber(textColor))
-				term.setBackgroundColor(tonumber(backgroundColor))
-				term.setCursorPos(row, column)
-				term.write(value)
-				term.setTextColor(colors.white)
-				term.setBackgroundColor(colors.black)
+				drawText(value, row, column, tonumber(textColor), tonumber(backgroundColor))
 			end
 		end
 	end
@@ -460,20 +471,4 @@ end
 function redrawGUI()
 	clearScreen()
 	drawMaps()
-end
-
-function drawText(text, x, y, textColor, backgroundColor)
-	term.setCursorPos(x, y)
-	term.setTextColor(textColor)
-	if (backgroundColor == "keep") then
-		for i = 1, #text do
-			term.setBackgroundColor(SettingsAPI.colorMap[x][y])
-			local char = string.sub(text, i, i)
-			term.write(char)
-		end
-	else
-		term.setBackgroundColor(backgroundColor)
-		term.write(text)
-	end
-	term.setCursorPos(0, 0)
 end

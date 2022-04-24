@@ -43,11 +43,8 @@ local function touch()
                 setfenv(func, getfenv())
                 func()
             elseif not (SettingsAPI.overrideFunctions) and not (SettingsAPI.functionMap[x][y] == 0 or SettingsAPI.functionMap[x][y] == nil) then
-                DisplayAPI.drawText(SettingsAPI.functionMap[x][y], 1, 7, 1, 128)
                 local func = load(SettingsAPI.functionMap[x][y])
-                DisplayAPI.drawText(func, 1, 8, 1, 128)
                 setfenv(func, getfenv())
-                DisplayAPI.drawText(func, 1, 9, 1, 128)
                 func()
             end
         end
