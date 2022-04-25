@@ -9,7 +9,7 @@ Milestones and releases are showcased and explained on my YouTube channel at htt
 A lot of the code will be without comments until I decide to take the time to add them. Sorry not sorry.
 
 A little about me. I'm a highschool programmer who likes coding. I decided one day that I wanted to push my skills and make a ComputerCraft Operating System.
-I wanted it to have a lot of features, half of which I have already prototyped or nearly completed (!).
+I wanted it to have a lot of features, half of which I have already prototyped (*) or nearly completed (!).
 - ! Custom Display API with versatility for any program and dynamicly stored maps (File that tells the custom interpreter where every color, text, image, and function is)
 - ! Custom Image Compression for large scale image storage
 - ! Custom In-Game Asset Creation Program (Basically MS Paint ripoff)
