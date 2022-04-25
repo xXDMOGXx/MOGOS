@@ -1,5 +1,20 @@
-function log(message)
+function log(message, x, y)
+	term.setTextColor(1)
+	term.setBackgroundColor(32768)
+	term.setCursorPos(x, y)
 	term.native().write(message)
+	term.setCursorPos(0, 0)
+end
+
+function switchMonitor(monitor)
+	if (SettingsAPI.monitorMode) then
+		term.redirect(term.native())
+		SettingsAPI.monitorMode = false
+	else
+		term.redirect(monitor)
+		monitor.setTextScale(.5)
+		SettingsAPI.monitorMode = true
+	end
 end
 
 local function readFileData(path, line)
@@ -248,6 +263,7 @@ function loadImage(path, x, y, isFake, line, isOPos, isPaint)
 end
 
 function drawText(text, x, y, textColor, backgroundColor)
+	text = tostring(text)
 	term.setCursorPos(x, y)
 	term.setTextColor(textColor)
 	if (backgroundColor == "keep") then
@@ -387,6 +403,7 @@ local function drawMaps()
 				else
 					value = dataString
 				end
+				if (value == nil) then log(dataString, row, column) end
 				loadImage(value, row, column)
 			end
 		end

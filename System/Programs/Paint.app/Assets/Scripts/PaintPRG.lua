@@ -16,11 +16,15 @@ local allowedPaint = true
 local currentScreen = "paint"
 local DEFAULT_SAVE_DIRECTORY = "MOGOS/User/"..SettingsAPI.user.."/Storage/Images/"
 local saveDirectory = DEFAULT_SAVE_DIRECTORY
-local mainMapPath = "MOGOS/System/Programs/Paint/Assets/Maps/paint.map"
-local picExt = ".cpic"
-local tempPicSave = "MOGOS/System/Programs/Paint/Assets/Saves/temp"..picExt
-local tempSetSave = "MOGOS/System/Programs/Paint/Assets/Saves/temp.set"
+local picExt = SettingsAPI.picExt
+local appExt = SettingsAPI.appExt
+local mainMapPath = "MOGOS/System/Programs/Paint.app/Assets/Maps/paint.map"
+local tempPicSave = "MOGOS/System/Programs/Paint"..appExt.."/Assets/Saves/temp"..picExt
+local tempSetSave = "MOGOS/System/Programs/Paint"..appExt.."/Assets/Saves/temp"..SettingsAPI.setExt
 local tempSaveMode = 0
+SettingsAPI.assetDict["colorpickerPic"] = "/MOGOS/System/Programs/Paint.app/Assets/Images/colorpicker.cpic"
+SettingsAPI.assetDict["eraserPic"] = "/MOGOS/System/Programs/Paint.app/Assets/Images/eraser.cpic"
+SettingsAPI.assetDict["selectorPic"] = "/MOGOS/System/Programs/Paint.app/Assets/Images/selector.cpic"
 
 function Exit()
 	if (tempSaveMode > 0) then
