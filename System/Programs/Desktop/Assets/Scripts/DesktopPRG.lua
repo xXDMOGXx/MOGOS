@@ -14,6 +14,8 @@
 
 os.loadAPI("MOGOS/System/APIs/SettingsAPI.lua")
 os.loadAPI("MOGOS/System/APIs/DisplayAPI.lua")
+os.loadAPI("MOGOS/System/APIs/CryptoNetAPI.lua")
+os.loadAPI("MOGOS/System/APIs/WirelessAPI.lua")
 
 local isRunning = true
 local mainMapPath = "MOGOS/System/Programs/Desktop/Assets/Maps/desktop"..SettingsAPI.mapExt
@@ -44,12 +46,12 @@ end
 
 local function addApps()
     if (#appList > 0) then
+        local y = SettingsAPI.sizeY-2
         for i = 1, #appList do
             local x = (i*5)-3
-            local y = (i*4)-1
             DisplayAPI.loadImage(appList[i][3], x, y)
-            for row = x, x+4 do
-                for column = y, y+3 do
+            for row = x, x+3 do
+                for column = y, y+2 do
                     SettingsAPI.functionMap[row][column] = "selectApp("..tostring(i)..")"
                 end
             end
@@ -86,7 +88,7 @@ end
 function Open()
     shell.run(appList[selectedApp][2])
     SettingsAPI.assetDict = {}
-    unselectApp()
+--    unselectApp()
 end
 
 function Edit()

@@ -18,7 +18,7 @@ local DEFAULT_SAVE_DIRECTORY = "MOGOS/User/"..SettingsAPI.user.."/Storage/Images
 local saveDirectory = DEFAULT_SAVE_DIRECTORY
 local picExt = SettingsAPI.picExt
 local appExt = SettingsAPI.appExt
-local mainMapPath = "MOGOS/System/Programs/Paint.app/Assets/Maps/elevator.map"
+local mainMapPath = "MOGOS/System/Programs/Paint.app/Assets/Maps/paint.map"
 local tempPicSave = "MOGOS/System/Programs/Paint"..appExt.."/Assets/Saves/temp"..picExt
 local tempSetSave = "MOGOS/System/Programs/Paint"..appExt.."/Assets/Saves/temp"..SettingsAPI.setExt
 local tempSaveMode = 0
@@ -313,9 +313,7 @@ local function start()
 	loadSettings()
 	resetPaintMap()
 	redraw()
-	if (fs.exists(tempPicSave)) then
-		DisplayAPI.loadImage(tempPicSave, 1, 1, false, "all", true, true)
-	end
+	if (fs.exists(tempPicSave)) then DisplayAPI.loadImage(tempPicSave, 1, 1, false, "all", true, true) end
 	touch()
 end
 
