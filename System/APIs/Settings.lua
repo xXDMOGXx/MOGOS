@@ -1,17 +1,21 @@
 overrideFuncions = false
 monitorMode = false
 monitor = nil
-sizeX, sizeY = term.getSize()
 isLowSpace = false
+wifiOn = false
+soundOn = false
+loggedIn = false
+user = ""
+
+sizeX, sizeY = term.getSize()
+
 DEFAULT_BACKGROUND_COLOR = 1
 backgroundColor = DEFAULT_BACKGROUND_COLOR
 DEFAULT_UI_COLOR_1 = 256
 uiColor1 = DEFAULT_UI_COLOR_1
 DEFAULT_UI_COLOR_2 = 128
 uiColor2 = DEFAULT_UI_COLOR_2
-wifiOn = false
-soundOn = false
-user = "xXDMOGXx"
+
 colorMap = {}
 textMap = {}
 functionMap = {}
@@ -22,7 +26,10 @@ assetDict = {}
 varDict = {}
 
 appExt = ".app"
-prgExt = "PRG.lua"
+prgExt = ".prg"
+apiExt = ".lua"
 mapExt = ".map"
 setExt = ".set"
-picExt = ".cpic"
+picExt = ".pic"
+anmExt = ".anm"
+vidExt = ".vid"

@@ -7,13 +7,13 @@ function log(message, x, y)
 end
 
 function switchMonitor(monitor)
-	if (SettingsAPI.monitorMode) then
+	if (Settings.monitorMode) then
 		term.redirect(term.native())
-		SettingsAPI.monitorMode = false
+		Settings.monitorMode = false
 	else
 		term.redirect(monitor)
 		monitor.setTextScale(.5)
-		SettingsAPI.monitorMode = true
+		Settings.monitorMode = true
 	end
 end
 
@@ -49,9 +49,9 @@ function findParam(dataString)
 end
 
 function emptyCheck()
-	for row = 1, SettingsAPI.sizeX do
-		for column = 1, SettingsAPI.sizeY do
-			if not (SettingsAPI.paintMap[row][column] == 0) then
+	for row = 1, Settings.sizeX do
+		for column = 1, Settings.sizeY do
+			if not (Settings.paintMap[row][column] == 0) then
 				return false
 			end
 		end
@@ -70,10 +70,10 @@ function saveImage(path, x, y, w, z, isSelImage)
 	local numColor = 1
 	local file = fs.open(path,"w")
 	if not (isFullImage) then
-		for column = 1, SettingsAPI.sizeY do
+		for column = 1, Settings.sizeY do
 			local isBreak = false
-			for row = 1, SettingsAPI.sizeX do
-				if not (SettingsAPI.paintMap[row][column] == 0) then
+			for row = 1, Settings.sizeX do
+				if not (Settings.paintMap[row][column] == 0) then
 					tColorY = column
 					isBreak = true
 					break
@@ -86,10 +86,10 @@ function saveImage(path, x, y, w, z, isSelImage)
 				break
 			end
 		end
-		for row = 1, SettingsAPI.sizeX do
+		for row = 1, Settings.sizeX do
 			local isBreak = false
-			for column = 1, SettingsAPI.sizeY do
-				if not (SettingsAPI.paintMap[row][column] == 0) then
+			for column = 1, Settings.sizeY do
+				if not (Settings.paintMap[row][column] == 0) then
 					tColorX = row
 					isBreak = true
 					break
@@ -102,10 +102,10 @@ function saveImage(path, x, y, w, z, isSelImage)
 				break
 			end
 		end
-		for column = SettingsAPI.sizeY, 1, -1 do
+		for column = Settings.sizeY, 1, -1 do
 			local isBreak = false
-			for row = SettingsAPI.sizeX, 1, -1 do
-				if not (SettingsAPI.paintMap[row][column] == 0) then
+			for row = Settings.sizeX, 1, -1 do
+				if not (Settings.paintMap[row][column] == 0) then
 					bColorY = column
 					isBreak = true
 					break
@@ -118,10 +118,10 @@ function saveImage(path, x, y, w, z, isSelImage)
 				break
 			end
 		end
-		for row = SettingsAPI.sizeX, 1, -1 do
+		for row = Settings.sizeX, 1, -1 do
 			local isBreak = false
-			for column = SettingsAPI.sizeY, 1, -1 do
-				if not (SettingsAPI.paintMap[row][column] == 0) then
+			for column = Settings.sizeY, 1, -1 do
+				if not (Settings.paintMap[row][column] == 0) then
 					bColorX = row
 					isBreak = true
 					break
@@ -138,10 +138,10 @@ function saveImage(path, x, y, w, z, isSelImage)
 	file.write("X"..tColorX.."Y"..tColorY.."W"..bColorX.."Z"..bColorY)
 	for row = tColorX, bColorX do
 		for column = tColorY, bColorY do
-			if (SettingsAPI.paintMap[row][column] == nil) then
+			if (Settings.paintMap[row][column] == nil) then
 				nextColor = "0"
 			else
-				nextColor = tostring(SettingsAPI.paintMap[row][column])
+				nextColor = tostring(Settings.paintMap[row][column])
 			end
 			if (color == nextColor) then
 				numColor = numColor + 1
@@ -218,14 +218,14 @@ function loadImage(path, x, y, isFake, line, isOPos, isPaint)
 			local arrayEndY = y + arraySizeY
 			while (number > 0) and (onScreen) do
 				if not (addColor == 0) then
-					if (arrayPosX == SettingsAPI.sizeX + 1) then
+					if (arrayPosX == Settings.sizeX + 1) then
 						onScreen = false
 					else
 						if not (isFake) then
 							if (isPaint) then
-								SettingsAPI.paintMap[arrayPosX][arrayPosY] = addColor
+								Settings.paintMap[arrayPosX][arrayPosY] = addColor
 							else
-								SettingsAPI.colorMap[arrayPosX][arrayPosY] = addColor
+								Settings.colorMap[arrayPosX][arrayPosY] = addColor
 							end
 						end
 						paintutils.drawPixel(arrayPosX, arrayPosY, addColor)
@@ -268,7 +268,7 @@ function drawText(text, x, y, textColor, backgroundColor)
 	term.setTextColor(textColor)
 	if (backgroundColor == "keep") then
 		for i = 1, #text do
-			term.setBackgroundColor(SettingsAPI.colorMap[x][y])
+			term.setBackgroundColor(Settings.colorMap[x][y])
 			local char = string.sub(text, i, i)
 			term.write(char)
 		end
@@ -294,16 +294,16 @@ local function decompressMap(dataString)
 		local char = string.sub(dataString, loc, loc)
 		if (tonumber(char) == nil) and not (char == "-") then
 			if (tPosX < 0) then
-				tPosX = (SettingsAPI.sizeX + tPosX) + 1
+				tPosX = (Settings.sizeX + tPosX) + 1
 			end
 			if (tPosY < 0) then
-				tPosY = (SettingsAPI.sizeY + tPosY) + 1
+				tPosY = (Settings.sizeY + tPosY) + 1
 			end
 			if (bPosX < 0) then
-				bPosX = (SettingsAPI.sizeX + bPosX) + 1
+				bPosX = (Settings.sizeX + bPosX) + 1
 			end
 			if (bPosY < 0) then
-				bPosY = (SettingsAPI.sizeY + bPosY) + 1
+				bPosY = (Settings.sizeY + bPosY) + 1
 			end
 			if (char == "X" and firstValue) then
 				firstValue = false
@@ -320,22 +320,22 @@ local function decompressMap(dataString)
 					local valueString = string.sub(dataString, lastLetterPos + 2, loc - 2)
 					value = valueString
 					if (lastLetter == "T") then
-						SettingsAPI.textMap[tPosX][tPosY] = value
+						Settings.textMap[tPosX][tPosY] = value
 					elseif (lastLetter == "F") then
 						for row = tPosX, bPosX do
 							for column = tPosY, bPosY do
-								SettingsAPI.functionMap[row][column] = value
+								Settings.functionMap[row][column] = value
 							end
 						end
 					else
-						SettingsAPI.imageMap[tPosX][tPosY] = value
+						Settings.imageMap[tPosX][tPosY] = value
 					end
 				else
 					local valueString = string.sub(dataString, lastLetterPos + 1, loc - 1)
 					value = valueString
 					for row = tPosX, bPosX do
 						for column = tPosY, bPosY do
-							SettingsAPI.colorMap[row][column] = value
+							Settings.colorMap[row][column] = value
 						end
 					end
 				end
@@ -375,10 +375,10 @@ end
 
 local function drawMaps()
 	local value
-	for row = 1, SettingsAPI.sizeX do
-		for column = 1, SettingsAPI.sizeY do
-			if not (SettingsAPI.colorMap[row][column] == 0) then
-				local dataString = SettingsAPI.colorMap[row][column]
+	for row = 1, Settings.sizeX do
+		for column = 1, Settings.sizeY do
+			if not (Settings.colorMap[row][column] == 0) then
+				local dataString = Settings.colorMap[row][column]
 				if (string.sub(dataString, 1, 1) == "\"") then
 					local valueString = string.sub(dataString, 2, -2)
 					local valueVar = load("return "..valueString)
@@ -393,8 +393,8 @@ local function drawMaps()
 				end
 				paintutils.drawPixel(row, column, value)
 			end
-			if not (SettingsAPI.imageMap[row][column] == 0) then
-				local dataString = SettingsAPI.imageMap[row][column]
+			if not (Settings.imageMap[row][column] == 0) then
+				local dataString = Settings.imageMap[row][column]
 				if string.sub(dataString, 1, 1) == "*" then
 					local valueString = string.sub(dataString, 2, -1)
 					local valueVar = load("return "..valueString)
@@ -408,10 +408,10 @@ local function drawMaps()
 			end
 		end
 	end
-	for row = 1, SettingsAPI.sizeX do
-		for column = 1, SettingsAPI.sizeY do
-			if not (SettingsAPI.textMap[row][column] == 0) then
-				local dataString = SettingsAPI.textMap[row][column]
+	for row = 1, Settings.sizeX do
+		for column = 1, Settings.sizeY do
+			if not (Settings.textMap[row][column] == 0) then
+				local dataString = Settings.textMap[row][column]
 				local stringLength = #dataString
 				local lastIndicatorPos = 0
 				local textColor = 0
@@ -442,25 +442,25 @@ local function drawMaps()
 end
 
 function resetMaps()
-	for row = 1, SettingsAPI.sizeX do
-		SettingsAPI.colorMap[row] = {}
-		SettingsAPI.textMap[row]= {}
-		SettingsAPI.functionMap[row] = {}
-		SettingsAPI.overrideFunctionMap[row] = {}
-		SettingsAPI.imageMap[row] = {}
-		for column = 1, SettingsAPI.sizeY do
-			SettingsAPI.colorMap[row][column] = 0
-			SettingsAPI.textMap[row][column] = 0
-			SettingsAPI.functionMap[row][column] = 0
-			SettingsAPI.overrideFunctionMap[row][column] = 0
-			SettingsAPI.imageMap[row][column] = 0
+	for row = 1, Settings.sizeX do
+		Settings.colorMap[row] = {}
+		Settings.textMap[row]= {}
+		Settings.functionMap[row] = {}
+		Settings.overrideFunctionMap[row] = {}
+		Settings.imageMap[row] = {}
+		for column = 1, Settings.sizeY do
+			Settings.colorMap[row][column] = 0
+			Settings.textMap[row][column] = 0
+			Settings.functionMap[row][column] = 0
+			Settings.overrideFunctionMap[row][column] = 0
+			Settings.imageMap[row][column] = 0
 		end
 	end
 end
 
 function clearScreen()
-	for row = 1, SettingsAPI.sizeX do
-		for column = 1, SettingsAPI.sizeY do
+	for row = 1, Settings.sizeX do
+		for column = 1, Settings.sizeY do
 			paintutils.drawPixel(row, column, colors.black)
 		end
 	end

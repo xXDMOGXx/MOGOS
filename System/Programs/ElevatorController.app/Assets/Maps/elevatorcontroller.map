@@ -1,4 +1,0 @@
-X1Y1W-1Z1C"SettingsAPI.uiColor2"X1Y2W-1Z-1C"SettingsAPI.backgroundColor"X1Y1T"<`1~16384"X1Y1W1Z1F"Exit()"X-1Y1T"+`1~8192"X-1Y1W-1Z1F"selectElevator(1)"E
-X1Y1W-1Z1C"SettingsAPI.uiColor2"X1Y2W-1Z-1C"SettingsAPI.backgroundColor"X1Y1T"<`1~16384"X1Y1W1Z1F"swapScreen(list)"X2Y3I"*SettingsAPI.assetDict['up']"X2Y3W8Z7F"elevatorUp()"X2Y9I"*SettingsAPI.assetDict['halt']"X2Y9W8Z13F"elevatorHalt()"X2Y15I"*SettingsAPI.assetDict['down']"X2Y15W8Z19F"elevatorDown()"E
-X1Y1W-1Z1C"SettingsAPI.uiColor2"X1Y2W-1Z-1C"SettingsAPI.backgroundColor"X1Y1T"<`1~16384"X1Y1W1Z1F"Exit()"E
-X1Y1W-1Z1C"SettingsAPI.uiColor2"X1Y2W-1Z-1C"SettingsAPI.backgroundColor"X1Y1T"<`1~16384"X1Y1W1Z1F"Exit()"E

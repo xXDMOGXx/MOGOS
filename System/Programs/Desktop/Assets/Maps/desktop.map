@@ -1,2 +1,0 @@
-X1Y1W-1Z-1C"SettingsAPI.backgroundColor"X-6Y2W-1Z-4C"SettingsAPI.uiColor2"X-6Y5W-1Z7C"SettingsAPI.uiColor1"X1Y1W-1Z1C"SettingsAPI.uiColor1"X1Y-3W-1Z-1C"SettingsAPI.uiColor1"X1Y1T"O`1~8"X3Y1T"^`1~4"X3Y1W3Z1F"switchMode()"X-7Y1W-7Z1C"SettingsAPI.wifiOn"X-9Y1W-9Z1C"SettingsAPI.soundOn"X5Y1T"*SettingsAPI.user`1~256"X-1Y1W-1Z1C16384X-1Y1T"X`1~16384"X-1Y1W-1Z1F"Exit()"E
-X1Y-4T"*SettingsAPI.varDict['appList'][SettingsAPI.varDict['selectedApp']][1]`128~1"X-5Y3T"Open`1~128"X-6Y2W-1Z4F"Open()"X-5Y6T"Edit`1~256"X-6Y5W-1Z7F"Edit()"E
