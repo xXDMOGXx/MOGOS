@@ -4,13 +4,13 @@ The name is a merge between DMOG and OS, hence MOGOS.
 Any OS files and seperate programs relating to the MOGOS environment will be posted here.
 
 This is a current very heavy WIP.
-Code will be pushed here from my editor as I work on it. A Pastebin installer will be created soon.
+Code will be pushed here from my editor as I work on it. A Pastebin installer is being created.
 Milestones and releases are showcased and explained on my YouTube channel at https://www.youtube.com/channel/UC55WbvBuB1ENqmYOXvtweGg.
 A lot of the code will be without comments until I decide to take the time to add them. Sorry not sorry.
 
-A little about me. I'm a highschool programmer who likes coding. I decided one day that I wanted to push my skills and make a ComputerCraft Operating System.
+A little about me. I'm a (recently graduated) highschool programmer who likes coding. I decided one day that I wanted to push my skills and make a ComputerCraft Operating System.
 I wanted it to have a lot of features, half of which I have already prototyped (*) or nearly completed (!).
-- ! Custom Display API with versatility for any program and dynamicly stored maps (File that tells the custom interpreter where every color, text, image, and function is)
+- ! Custom Display API with versatility for any program and stored dynamic maps (File that tells the custom interpreter where every color, text, image, and function is, without being hard coded into script)
 - ! Custom Image Compression for large scale image storage
 - ! Custom In-Game Asset Creation Program (Basically MS Paint ripoff)
 - Custom Sound System
