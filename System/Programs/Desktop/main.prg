@@ -85,7 +85,6 @@ function Open()
 end
 
 function Edit()
-
 end
 
 local function touch()
@@ -106,14 +105,10 @@ local function touch()
 end
 
 local function start()
-    if (term.isColor()) then
-        Display.resetMaps()
-        searchApps()
-        unselectApp()
-        touch()
-    else
-        print("Graphics must be able to be supported to use a graphics user interface. Install MOGOS again on an advanced device")
-    end
+    Display.resetMaps()
+    searchApps()
+    unselectApp()
+    touch()
 end
 
 start()

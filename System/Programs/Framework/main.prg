@@ -16,16 +16,26 @@ os.loadAPI("MOGOS/System/APIs/Settings.lua")
 os.loadAPI("MOGOS/System/APIs/Display.lua")
 os.loadAPI("MOGOS/System/APIs/CryptoNet.lua")
 
-local loginScript = "MOGOS/System/Programs/Login/main.prg"
-local desktopScript = "MOGOS/System/Programs/Desktop/main.prg"
-
 local function start()
     if (term.isColor()) then
-        shell.run(desktopScript)
---        shell.run(loginScript)
---        if (Settings.loggedIn) then
---            shell.run(desktopScript)
---        end
+        local loginScript = "MOGOS/System/Programs/Login/main.prg"
+        local desktopScript = "MOGOS/System/Programs/Desktop/main.prg"
+        local userPath = "MOGOS/User/"
+        local users = fs.list(userPath)
+        if (#users > 1) then
+            print("Choose User")
+            Settings.user = read()
+        else
+            Settings.user = users[1]
+        end
+        if (fs.exists(userPath..Settings.user.."/Settings/.password")) then
+            shell.run(loginScript)
+            if (Settings.loggedIn) then
+                shell.run(desktopScript)
+            end
+        else
+            shell.run(desktopScript)
+        end
     else
         print("Graphics must be able to be supported to use a graphics user interface. Install MOGOS again on an advanced device")
     end
