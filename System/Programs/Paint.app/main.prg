@@ -133,7 +133,7 @@ local function paint(x, y)
 		Settings.paintMap[x][y] = 0
 	elseif (currentTool == "Color Picker") and not (Settings.paintMap[x][y] == 0) then
 		color2 = Settings.paintMap[x][y]
-		paintutils.drawFilledBox(41, 2, 44, 4, color2)
+		paintutils.drawFilledBox(35, 2, 38, 4, color2)
 		selectTool("Color 2")
 	elseif (currentTool == "Selector") then
 		local selectColor = 0
