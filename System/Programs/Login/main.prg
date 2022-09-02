@@ -3,20 +3,25 @@ local barSelected = false
 local typedString = ""
 local stringPos = 1
 local cursorPos = 1
+local userPos = 1
 local maxLength = 19
 local startX = math.ceil(Settings.sizeX / 2) - 11
 local startY = math.ceil(Settings.sizeY / 2)
+local currentUser = ""
+local currentScreen = "users"
 local mainMapPath = "MOGOS/System/Programs/Login/Assets/Maps/main"..Settings.mapExt
 Settings.assetDict["barPic"] = "/MOGOS/System/Programs/Login/Assets/Images/bar"..Settings.picExt
 
 function checkPassword()
-    local passPath = "MOGOS/User/"..Settings.user.."/Settings/.password"
+    local passPath = "MOGOS/User/"..currentUser.."/Settings/.password"
     local file = fs.open(passPath,"r")
     local data = file.readAll()
     local storage = string.sub(data, 1, 1)
     if (storage == "1") then
         local storedPass = string.sub(data, 2, -1)
         if (typedString == storedPass) then
+            unselectBar()
+            Settings.user = currentUser
             Settings.loggedIn = true
             isRunning = false
         else
@@ -28,7 +33,7 @@ function checkPassword()
         end
     elseif (storage == "2") then
         local storedPass = textutils.unserialize(string.sub(data, 2, -1))
-        local enteredPass = CryptoNet.sha256.pbkdf2(typedString, Settings.user, 10)
+        local enteredPass = CryptoNet.sha256.pbkdf2(typedString, currentUser, 10)
         if (#enteredPass == #storedPass) then
             local correct = true
             for i=1, #storedPass do
@@ -37,6 +42,8 @@ function checkPassword()
                 end
             end
             if (correct) then
+                unselectBar()
+                Settings.user = currentUser
                 Settings.loggedIn = true
                 isRunning = false
             else
@@ -55,7 +62,7 @@ function checkPassword()
         end
     elseif (storage == "3") then
         local storedPass = textutils.unserialize(string.sub(data, 2, -1))
-        local enteredPass = CryptoNet.sha256.pbkdf2(typedString, Settings.user..os.getComputerID(), 10)
+        local enteredPass = CryptoNet.sha256.pbkdf2(typedString, currentUser..os.getComputerID(), 10)
         if (#enteredPass == #storedPass) then
             local correct = true
             for i=1, #storedPass do
@@ -64,6 +71,8 @@ function checkPassword()
                 end
             end
             if (correct) then
+                unselectBar()
+                Settings.user = currentUser
                 Settings.loggedIn = true
                 isRunning = false
             else
@@ -90,6 +99,7 @@ function checkPassword()
 end
 
 function selectBar()
+    paintutils.drawFilledBox(startX, startY+2, startX + maxLength - 1, startY+2, 256)
     term.setTextColor(32768)
     term.setBackgroundColor(1)
     term.setCursorPos(startX + cursorPos - 1, startY)
@@ -303,18 +313,106 @@ local function moveRight()
     end
 end
 
+local function listUsers()
+    local userPath = "MOGOS/User/"
+    local users = fs.list(userPath)
+    if (#users > 1) then
+        local midX = math.ceil(Settings.sizeX / 2)
+        local midY = math.ceil(Settings.sizeY / 2)
+        if (#users == 2) then
+            paintutils.drawFilledBox(midX - 9, midY - 3, midX + 9, midY - 1, 128)
+            Display.drawText(users[1], midX - math.floor(#users[1] / 2), midY - 2, 1, 128)
+            Display.drawFunction("selectUser("..users[1]..")", midX - 9, midY - 3, midX + 9, midY - 1)
+            paintutils.drawFilledBox(midX - 9, midY + 1, midX + 9, midY + 3, 128)
+            Display.drawText(users[2], midX - math.floor(#users[2] / 2), midY + 2, 1, 128)
+            Display.drawFunction("selectUser("..users[2]..")", midX - 9, midY + 1, midX + 9, midY + 3)
+        elseif (#users == 3) then
+            paintutils.drawFilledBox(midX - 9, midY - 5, midX + 9, midY - 3, 128)
+            Display.drawText(users[1], midX - math.floor(#users[1] / 2), midY - 4, 1, 128)
+            Display.drawFunction("selectUser("..users[1]..")", midX - 9, midY - 5, midX + 9, midY - 3)
+            paintutils.drawFilledBox(midX - 9, midY - 1, midX + 9, midY + 1, 128)
+            Display.drawText(users[2], midX - math.floor(#users[2] / 2), midY, 1, 128)
+            Display.drawFunction("selectUser("..users[2]..")", midX - 9, midY - 1, midX + 9, midY + 1)
+            paintutils.drawFilledBox(midX - 9, midY + 3, midX + 9, midY + 5, 128)
+            Display.drawText(users[3], midX - math.floor(#users[3] / 2), midY + 4, 1, 128)
+            Display.drawFunction("selectUser("..users[3]..")", midX - 9, midY + 3, midX + 9, midY + 5)
+        else
+            paintutils.drawFilledBox(midX - 9, midY - 5, midX + 9, midY - 3, 128)
+            Display.drawText(users[userPos], midX - math.floor(#users[userPos] / 2), midY - 4, 1, 128)
+            Display.drawFunction("selectUser("..users[userPos]..")", midX - 9, midY - 5, midX + 9, midY - 3)
+            paintutils.drawFilledBox(midX - 9, midY - 1, midX + 9, midY + 1, 128)
+            Display.drawText(users[userPos+1], midX - math.floor(#users[userPos+1] / 2), midY, 1, 128)
+            Display.drawFunction("selectUser("..users[userPos+1]..")", midX - 9, midY - 1, midX + 9, midY + 1)
+            paintutils.drawFilledBox(midX - 9, midY + 3, midX + 9, midY + 5, 128)
+            Display.drawText(users[userPos+2], midX - math.floor(#users[userPos+2] / 2), midY + 4, 1, 128)
+            Display.drawFunction("selectUser("..users[userPos+2]..")", midX - 9, midY + 3, midX + 9, midY + 5)
+            if (userPos > 1) then
+                paintutils.drawPixel(midX - 1, midY - 7, 32768)
+                paintutils.drawPixel(midX, midY - 8, 32768)
+                paintutils.drawPixel(midX + 1, midY - 7, 32768)
+                Display.drawFunction("scrollUp()", midX - 1, midY - 8, midX + 1, midY - 7)
+            end
+            if (userPos + 2 < #users) then
+                paintutils.drawPixel(midX - 1, midY + 7, 32768)
+                paintutils.drawPixel(midX, midY + 8, 32768)
+                paintutils.drawPixel(midX + 1, midY + 7, 32768)
+                Display.drawFunction("scrollDown()", midX - 1, midY + 7, midX + 1, midY + 8)
+            end
+        end
+    else
+        selectUser(users[1])
+    end
+end
+
+function scrollUp()
+    userPos = userPos - 1
+    swapScreen("users")
+end
+
+function scrollDown()
+    userPos = userPos + 1
+    swapScreen("users")
+end
+
+function selectUser(user)
+    local userPath = "/MOGOS/User/"
+    currentUser = user
+    if (fs.exists(userPath..currentUser.."/Settings/.password")) then
+        swapScreen("login")
+    else
+        Settings.user = currentUser
+        Settings.loggedIn = true
+        isRunning = false
+    end
+end
+
+function swapScreen(screen)
+    if (screen == "login") then
+        Display.replaceGUI(mainMapPath, 2)
+        currentScreen = "login"
+        local midX = math.ceil(Settings.sizeX / 2)
+        Display.drawText(currentUser, midX - math.floor(#currentUser / 2), startY - 4, 1, 128)
+    elseif (screen == "users") then
+        unselectBar()
+        Display.replaceGUI(mainMapPath, 1)
+        currentUser = ""
+        currentScreen = "users"
+        listUsers()
+    end
+end
+
 local function touch()
     while isRunning do
         local event, key, x, y = os.pullEvent()
         if (event == "monitor_touch") or (event == "mouse_click") then
             if (Settings.overrideFunctions) and not (Settings.overrideFunctionMap[x][y] == 0 or Settings.overrideFunctionMap[x][y] == nil) then
-                local func = load(Settings.overrideFunctionMap[x][y])
-                setfenv(func, getfenv())
-                func()
+                local func, param = Display.findParam(Settings.overrideFunctionMap[x][y])
+                if (param == nil) then _ENV[func]()
+                else _ENV[func](param) end
             elseif not (Settings.overrideFunctions) and not (Settings.functionMap[x][y] == 0 or Settings.functionMap[x][y] == nil) then
-                local func = load(Settings.functionMap[x][y])
-                setfenv(func, getfenv())
-                func()
+                local func, param = Display.findParam(Settings.functionMap[x][y])
+                if (param == nil) then _ENV[func]()
+                else _ENV[func](param) end
             else
                 unselectBar()
             end
@@ -336,6 +434,7 @@ end
 
 local function start()
     Display.replaceGUI(mainMapPath, 1)
+    listUsers()
     touch()
 end
 

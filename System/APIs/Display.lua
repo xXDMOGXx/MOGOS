@@ -279,6 +279,19 @@ function drawText(text, x, y, textColor, backgroundColor)
 	term.setCursorPos(0, 0)
 end
 
+function drawFunction(func, x1, y1, x2, y2, override)
+	local override = override or false
+	for row = x1, x2 do
+		for column = y1, y2 do
+			if (override) then
+				Settings.overrideFunctionMap[row][column] = func
+			else
+				Settings.functionMap[row][column] = func
+			end
+		end
+	end
+end
+
 local function decompressMap(dataString)
 	local stringLength = #dataString
 	local lastLetterPos = 0
@@ -323,11 +336,7 @@ local function decompressMap(dataString)
 					if (lastLetter == "T") then
 						Settings.textMap[tPosX][tPosY] = value
 					elseif (lastLetter == "F") then
-						for row = tPosX, bPosX do
-							for column = tPosY, bPosY do
-								Settings.functionMap[row][column] = value
-							end
-						end
+						drawFunction(value, tPosX, tPosY, bPosX, bPosY)
 					else
 						Settings.imageMap[tPosX][tPosY] = value
 					end

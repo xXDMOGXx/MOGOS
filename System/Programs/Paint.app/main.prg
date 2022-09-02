@@ -285,7 +285,7 @@ local function touch()
 		local event, _, x, y = os.pullEvent()
 		if (event == "monitor_touch") or (event == "mouse_click") then
 			if (Settings.overrideFunctions) and not (Settings.overrideFunctionMap[x][y] == 0 or Settings.overrideFunctionMap[x][y] == nil) then
-				local func, param = Display.findParam(Settings.functionMap[x][y])
+				local func, param = Display.findParam(Settings.overrideFunctionMap[x][y])
 				if (param == nil) then _ENV[func]()
 				else _ENV[func](param) end
 			elseif not (Settings.overrideFunctions) and not (Settings.functionMap[x][y] == 0 or Settings.functionMap[x][y] == nil) then

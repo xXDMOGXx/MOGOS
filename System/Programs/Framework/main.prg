@@ -20,20 +20,8 @@ local function start()
     if (term.isColor()) then
         local loginScript = "MOGOS/System/Programs/Login/main.prg"
         local desktopScript = "MOGOS/System/Programs/Desktop/main.prg"
-        local userPath = "MOGOS/User/"
-        local users = fs.list(userPath)
-        if (#users > 1) then
-            print("Choose User")
-            Settings.user = read()
-        else
-            Settings.user = users[1]
-        end
-        if (fs.exists(userPath..Settings.user.."/Settings/.password")) then
-            shell.run(loginScript)
-            if (Settings.loggedIn) then
-                shell.run(desktopScript)
-            end
-        else
+        shell.run(loginScript)
+        if (Settings.loggedIn) then
             shell.run(desktopScript)
         end
     else
