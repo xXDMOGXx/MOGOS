@@ -285,6 +285,7 @@ local function decompressMap(dataString)
 	local lastLetter
 	local firstValue = true
 	local inQuotes = false
+	local middle = false
 	local tPosX = 0
 	local tPosY = 0
 	local bPosX = 0
@@ -342,30 +343,77 @@ local function decompressMap(dataString)
 				lastLetter = "X"
 				lastLetterPos = loc
 			elseif not (inQuotes) then
-				local numberPos = loc - (lastLetterPos + 1)
-				local numberString = string.sub(dataString, loc - numberPos, loc - 1)
-				local number = tonumber(numberString)
-				lastLetterPos = loc
+				local numberPos
+				local numberString
+				local number
+				if (middle) then
+					numberPos = loc - (lastLetterPos + 2)
+				else
+					numberPos = loc - (lastLetterPos + 1)
+				end
+				if (char == "M") then
+					middle = true
+				else
+					numberString = string.sub(dataString, loc - numberPos, loc - 1)
+					print(numberString)
+					number = tonumber(numberString)
+					lastLetterPos = loc
+				end
 				if (char == "Y") then
-					tPosX = number
+					if (middle) then
+						tPosX = math.ceil(Settings.sizeX / 2) + number
+						middle = false
+					else
+						tPosX = number
+					end
 					lastLetter = "Y"
 				elseif (char == "W") then
-					tPosY = number
+					if (middle) then
+						tPosY = math.ceil(Settings.sizeY / 2) + number
+						middle = false
+					else
+						tPosY = number
+					end
 					lastLetter = "W"
 				elseif (char == "T") then
-					tPosY = number
+					if (middle) then
+						tPosY = math.ceil(Settings.sizeY / 2) + number
+						middle = false
+					else
+						tPosY = number
+					end
 					lastLetter = "T"
 				elseif (char == "Z") then
-					bPosX = number
+					if (middle) then
+						bPosX = math.ceil(Settings.sizeX / 2) + number
+						middle = false
+					else
+						bPosX = number
+					end
 					lastLetter = "Z"
 				elseif (char == "C") then
-					bPosY = number
+					if (middle) then
+						bPosY = math.ceil(Settings.sizeY / 2) + number
+						middle = false
+					else
+						bPosY = number
+					end
 					lastLetter = "C"
 				elseif (char == "F") then
-					bPosY = number
+					if (middle) then
+						bPosY = math.ceil(Settings.sizeY / 2) + number
+						middle = false
+					else
+						bPosY = number
+					end
 					lastLetter = "F"
 				elseif (char == "I") then
-					tPosY = number
+					if (middle) then
+						tPosY = math.ceil(Settings.sizeY / 2) + number
+						middle = false
+					else
+						tPosY = number
+					end
 					lastLetter = "I"
 				end
 			end
