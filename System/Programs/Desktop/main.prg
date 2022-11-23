@@ -73,7 +73,6 @@ function switchMode()
     if (monitor) and not (pocket) then
         Display.clearGUI()
         Display.switchMonitor(monitor)
-        Settings.sizeX, Settings.sizeY = term.getSize()
         unselectApp()
     end
 end
