@@ -1,4 +1,3 @@
-local objectCount = 1
 local takenIDs = {}
 local objectList = {}
 
@@ -24,6 +23,7 @@ end
 
 function setBackgroundColor(color)
 	Settings.backgroundColor = color
+	paintutils.drawFilledBox(1, 1, Settings.sizeX, Settings.sizeY, Settings.backgroundColor)
 	drawScreen()
 end
 
@@ -87,8 +87,21 @@ function resetMaps()
 end
 
 local function assignObjectID()
-	local id = objectCount
-	objectCount = objectCount + 1
+	local id = 1
+	local foundID = false
+	local increment = false
+	while not foundID do
+		for i=1, #takenIDs do
+			if (takenIDs[i] == id) then
+				increment = true
+				break
+			end
+		end
+		if (increment) then
+			id = id + 1
+			increment = false
+		else foundID = true end
+	end
 	return id
 end
 
@@ -138,8 +151,16 @@ function drawScreen()
 end
 
 function clearScreen()
-	for i=1, #takenIDs do
+	local numIDs = #takenIDs
+	for i=#takenIDs, 1, -1 do
+		local temp = numIDs
 		objectList[takenIDs[i]]:delete(true)
+		numIDs = #takenIDs
+		while (temp == numIDs) do
+			if (objectList[takenIDs[i]] == nil) then table.remove(takenIDs, i)
+			else objectList[takenIDs[i]]:delete(true) end
+			numIDs = #takenIDs
+		end
 	end
 	resetMaps()
 	paintutils.drawFilledBox(1, 1, Settings.sizeX, Settings.sizeY, Settings.backgroundColor)
@@ -149,7 +170,7 @@ local function redrawUnderlaps(id)
 	local bounds = {objectList[id].x, objectList[id].sizeX, objectList[id].y, objectList[id].sizeY}
 	local checkList = {}
 	local underlaps = {}
-	if (takenIDs[-1] ~= id) then
+	if (takenIDs[1] ~= id) then
 		for i=1, #takenIDs do
 			if (takenIDs[i] == id) then break end
 			local checkObject = objectList[takenIDs[i]]
@@ -170,8 +191,8 @@ local function redrawOverlaps(id)
 	local bounds = {objectList[id].x, objectList[id].sizeX, objectList[id].y, objectList[id].sizeY}
 	local checkList = {}
 	local overlaps = {}
-	if (objectList[1] ~= id) then
-		for i=1, id-1 do
+	if (objectList[-1] ~= id) then
+		for i=#takenIDs , 1, -1 do
 			if (takenIDs[i] == id) then break end
 			local checkObject = objectList[takenIDs[i]]
 			if not (checkObject.hidden) then
@@ -350,10 +371,24 @@ y (Int): The vertical pixel amount from the top left of the screen, to the top l
 sizeX (Int): Horizontal length of the fill
 sizeY (Int): Vertical length of the fill
 --]]
-function Fill:new(x, y, sizeX, sizeY)
+function Fill:new(x, y, sizeX, sizeY, anchorX, anchorY)
 	self.__index = self
 	if (type(x) ~= "number") then error("Expected number for arg #1, got "..type(x), 2) end
 	if (type(y) ~= "number") then error("Expected number for arg #2, got "..type(y), 2) end
+	if (type(sizeX) ~= "number") then error("Expected number for arg #3, got "..type(sizeX), 2) end
+	if (type(sizeY) ~= "number") then error("Expected number for arg #4, got "..type(sizeY), 2) end
+	anchorX = anchorX or "left"
+	if (type(anchorX) ~= "string") then error("Expected string for arg #5, got "..type(anchorX), 2) end
+	local lowerAX = string.lower(anchorX)
+	if (lowerAX == "middle") then x = Settings.midX + x
+	elseif (lowerAX == "right") then x = Settings.sizeX + x
+	elseif (lowerAX ~= "left") then error(anchorX.." is not an accepted x axis anchor", 2) end
+	anchorY = anchorY or "top"
+	if (type(anchorY) ~= "string") then error("Expected string for arg #6, got "..type(anchorY), 2) end
+	local lowerAY = string.lower(anchorY)
+	if (lowerAY == "middle") then y = Settings.midY + y
+	elseif (lowerAY == "bottom") then y = Settings.sizeY + y
+	elseif (lowerAY ~= "top") then error(anchorY.." is not an accepted y axis anchor", 2) end
 	local o = setmetatable({
 		x = x,
 		y = y,
@@ -381,8 +416,8 @@ end
 function Fill:resize(sizeX, sizeY)
 	if not (self.hidden) then
 		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
-		for row = 1, self.sizeX do
-			for column = 1, self.sizeY do
+		for row = self.x, self.x + self.sizeX - 1 do
+			for column = self.y, self.y + self.sizeY - 1 do
 				Settings.colorMap[row][column] = 0
 			end
 		end
@@ -400,14 +435,14 @@ function Fill:resize(sizeX, sizeY)
 	end
 end
 
-function Fill:move(x, y, relative)
+function Fill:move(x, y, relative, anchorX, anchorY)
 	relative = relative or false
 	if (type(relative) == "boolean") then
 	else error("Expected boolean for parameter #3, got "..type(relative), 2) end
 	if not (self.hidden) then
 		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
-		for row = 1, self.sizeX do
-			for column = 1, self.sizeY do
+		for row = self.x, self.x + self.sizeX - 1 do
+			for column = self.y, self.y + self.sizeY - 1 do
 				Settings.colorMap[row][column] = 0
 			end
 		end
@@ -427,6 +462,18 @@ function Fill:move(x, y, relative)
 		y = y or 1
 		if (type(y) == "number") then self.y = y
 		else error("Expected number for parameter #2, got "..type(y), 2) end
+		anchorX = anchorX or "left"
+		if (type(anchorX) ~= "string") then error("Expected string for arg #4, got "..type(anchorX), 2) end
+		local lowerAX = string.lower(anchorX)
+		if (lowerAX == "middle") then x = Settings.midX + x
+		elseif (lowerAX == "right") then x = Settings.sizeX + x
+		elseif (lowerAX ~= "left") then error(anchorX.." is not an accepted x axis anchor", 2) end
+		anchorY = anchorY or "top"
+		if (type(anchorY) ~= "string") then error("Expected string for arg #6, got "..type(anchorY), 2) end
+		local lowerAY = string.lower(anchorY)
+		if (lowerAY == "middle") then y = Settings.midY + y
+		elseif (lowerAY == "bottom") then y = Settings.sizeY + y
+		elseif (lowerAY ~= "top") then error(anchorY.." is not an accepted y axis anchor", 2) end
 	end
 	if not (self.hidden) then
 		self:draw()
@@ -445,8 +492,8 @@ end
 function Fill:hide()
 	if not (self.hidden) then
 		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
-		for row = 1, self.sizeX do
-			for column = 1, self.sizeY do
+		for row = self.x, self.x + self.sizeX - 1 do
+			for column = self.y, self.y + self.sizeY - 1 do
 				Settings.colorMap[row][column] = 0
 			end
 		end
@@ -469,9 +516,9 @@ end
 function Fill:draw()
 	if (self.fillColor ~= 0) then
 		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, self.fillColor)
-		for row = 1, self.sizeX do
-			for column = 1, self.sizeY do
-				Settings.colorMap[self.x + row - 1][self.y + column - 1] = self.fillColor
+		for row = self.x, self.x + self.sizeX - 1 do
+			for column = self.y, self.y + self.sizeY - 1 do
+				Settings.colorMap[row][column] = self.fillColor
 			end
 		end
 	end
@@ -503,12 +550,12 @@ function Fill:delete(overrideRedraw)
 	overrideRedraw = overrideRedraw or false
 	if (type(overrideRedraw) ~= "boolean") then error("Expected boolean for parameter #1, got "..type(overrideRedraw), 2) end
 	if not (overrideRedraw) then
-		for row = 1, self.sizeX do
-			for column = 1, self.sizeY do
+		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
+		for row = self.x, self.x + self.sizeX - 1 do
+			for column = self.y, self.y + self.sizeY - 1 do
 				Settings.colorMap[row][column] = 0
 			end
 		end
-		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
 		redrawUnderlaps(self.id)
 		redrawOverlaps(self.id)
 	end
@@ -530,14 +577,25 @@ Creates a new instance of an Image object
 x (Int): The horizontal pixel amount from the top left of the screen, to the top left of the image
 y (Int): The vertical pixel amount from the top left of the screen, to the top left of the image
 --]]
-function Image:new(x, y)
+function Image:new(x, y, anchorX, anchorY)
 	self.__index = self
 	if (type(x) ~= "number") then error("Expected number for arg #1, got "..type(x), 2) end
 	if (type(y) ~= "number") then error("Expected number for arg #2, got "..type(y), 2) end
+	anchorX = anchorX or "left"
+	if (type(anchorX) ~= "string") then error("Expected string for arg #3, got "..type(anchorX), 2) end
+	local lowerAX = string.lower(anchorX)
+	if (lowerAX == "middle") then x = Settings.midX + x
+	elseif (lowerAX == "right") then x = Settings.sizeX + x
+	elseif (lowerAX ~= "left") then error(anchorX.." is not an accepted x axis anchor", 2) end
+	anchorY = anchorY or "top"
+	if (type(anchorY) ~= "string") then error("Expected string for arg #6, got "..type(anchorY), 2) end
+	local lowerAY = string.lower(anchorY)
+	if (lowerAY == "middle") then y = Settings.midY + y
+	elseif (lowerAY == "bottom") then y = Settings.sizeY + y
+	elseif (lowerAY ~= "top") then error(anchorY.." is not an accepted y axis anchor", 2) end
 	local o = setmetatable({
 		x = x,
 		y = y,
-		imagePath = imagePath,
 		sizeX = 1,
 		sizeY = 1,
 		image = nil,
@@ -551,15 +609,6 @@ end
 
 -- imagePath (String): A directory path starting from root "/" that points to the image
 function Image:setImage(imagePath)
-	if not (self.hidden) then
-		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
-		for row = 1, self.sizeX do
-			for column = 1, self.sizeY do
-				Settings.colorMap[row][column] = 0
-			end
-		end
-		redrawUnderlaps(self.id)
-	end
 	imagePath = imagePath or ""
 	if (type(imagePath) == "string") then self.imagePath = imagePath
 	else error("Expected string for arg #1, got "..type(imagePath), 2) end
@@ -567,6 +616,15 @@ function Image:setImage(imagePath)
 	local ix, iy, image
 	if (imageData == "") then error("Image 'imagePath' failed to load: File is empty", 2)
 	elseif (imageData) then
+		if not (self.hidden) then
+			paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
+			for row = self.x, self.x + self.sizeX - 1 do
+				for column = self.y, self.y + self.sizeY - 1 do
+					Settings.colorMap[row][column] = 0
+				end
+			end
+			redrawUnderlaps(self.id)
+		end
 		local lastLetterPos = 1
 		local ox, oy
 		for loc = 1, #imageData do
@@ -602,14 +660,14 @@ function Image:setImage(imagePath)
 	end
 end
 
-function Image:move(x, y, relative)
+function Image:move(x, y, relative, anchorX, anchorY)
 	relative = relative or false
 	if (type(relative) == "boolean") then
 	else error("Expected boolean for parameter #3, got "..type(relative), 2) end
 	if not (self.hidden) then
 		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
-		for row = 1, self.sizeX do
-			for column = 1, self.sizeY do
+		for row = self.x, self.x + self.sizeX - 1 do
+			for column = self.y, self.y + self.sizeY - 1 do
 				Settings.colorMap[row][column] = 0
 			end
 		end
@@ -629,6 +687,18 @@ function Image:move(x, y, relative)
 		y = y or 1
 		if (type(y) == "number") then self.y = y
 		else error("Expected number for parameter #2, got "..type(y), 2) end
+		anchorX = anchorX or "left"
+		if (type(anchorX) ~= "string") then error("Expected string for arg #4, got "..type(anchorX), 2) end
+		local lowerAX = string.lower(anchorX)
+		if (lowerAX == "middle") then x = Settings.midX + x
+		elseif (lowerAX == "right") then x = Settings.sizeX + x
+		elseif (lowerAX ~= "left") then error(anchorX.." is not an accepted x axis anchor", 2) end
+		anchorY = anchorY or "top"
+		if (type(anchorY) ~= "string") then error("Expected string for arg #6, got "..type(anchorY), 2) end
+		local lowerAY = string.lower(anchorY)
+		if (lowerAY == "middle") then y = Settings.midY + y
+		elseif (lowerAY == "bottom") then y = Settings.sizeY + y
+		elseif (lowerAY ~= "top") then error(anchorY.." is not an accepted y axis anchor", 2) end
 	end
 	if not (self.hidden) then
 		self:draw()
@@ -647,8 +717,8 @@ end
 function Image:hide()
 	if not (self.hidden) then
 		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
-		for row = 1, self.sizeX do
-			for column = 1, self.sizeY do
+		for row = self.x, self.x + self.sizeX - 1 do
+			for column = self.y, self.y + self.sizeY - 1 do
 				Settings.colorMap[row][column] = 0
 			end
 		end
@@ -709,12 +779,12 @@ function Image:delete(overrideRedraw)
 	overrideRedraw = overrideRedraw or false
 	if (type(overrideRedraw) ~= "boolean") then error("Expected boolean for parameter #1, got "..type(overrideRedraw), 2) end
 	if not (overrideRedraw) then
-		for row = 1, self.sizeX do
-			for column = 1, self.sizeY do
+		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
+		for row = self.x, self.x + self.sizeX - 1 do
+			for column = self.y, self.y + self.sizeY - 1 do
 				Settings.colorMap[row][column] = 0
 			end
 		end
-		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
 		redrawUnderlaps(self.id)
 		redrawOverlaps(self.id)
 	end
@@ -755,12 +825,24 @@ scrollMode (String): Determines how overflow text will be handled when allowScro
 lifetime (Int): Determines how long text box will appear before deleting itself (0 disables lifetime)
 overrideObject (Boolean): Doesn't add object to the global object list (Useful for sub-objects or third party display functions)
 --]]
-function TextBox:new(x, y, sizeX, sizeY)
+function TextBox:new(x, y, sizeX, sizeY, anchorX, anchorY)
 	self.__index = self
 	if (type(x) ~= "number") then error("Expected number for arg #1, got "..type(x), 2) end
 	if (type(y) ~= "number") then error("Expected number for arg #2, got "..type(y), 2) end
 	if (type(sizeX) ~= "number") then error("Expected number for arg #3, got "..type(sizeX), 2) end
 	if (type(sizeY) ~= "number") then error("Expected number for arg #4, got "..type(sizeY), 2) end
+	anchorX = anchorX or "left"
+	if (type(anchorX) ~= "string") then error("Expected string for arg #5, got "..type(anchorX), 2) end
+	local lowerAX = string.lower(anchorX)
+	if (lowerAX == "middle") then x = Settings.midX + x
+	elseif (lowerAX == "right") then x = Settings.sizeX + x
+	elseif (lowerAX ~= "left") then error(anchorX.." is not an accepted x axis anchor", 2) end
+	anchorY = anchorY or "top"
+	if (type(anchorY) ~= "string") then error("Expected string for arg #6, got "..type(anchorY), 2) end
+	local lowerAY = string.lower(anchorY)
+	if (lowerAY == "middle") then y = Settings.midY + y
+	elseif (lowerAY == "bottom") then y = Settings.sizeY + y
+	elseif (lowerAY ~= "top") then error(anchorY.." is not an accepted y axis anchor", 2) end
 	local o = setmetatable({
 		x = x,
 		y = y,
@@ -945,9 +1027,6 @@ function TextBox:deleteChar()
 			if (self.stringPos + self.maxLength - 1 <= #self.text) then self.visibleText = "<"..preString..postString..">"
 			else self.visibleText = "<"..preString..postString end
 			self.stringPos = self.stringPos - 1
-			term.write(#self.text)
-			term.setCursorPos(1, 2)
-			term.write(self.stringPos)
 		else
 			if (self.cursorPos ~= 1) then
 				if (self.cursorPos == 2) then preString = ""
@@ -1033,14 +1112,14 @@ end
 
 function TextBox:resize(sizeX, sizeY)
 	if not (self.hidden) then
-		self:unselect()
-		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
 		Event.unbindClickEvent(self)
-		for row = 1, self.sizeX do
-			for column = 1, self.sizeY do
+		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
+		for row = self.x, self.x + self.sizeX - 1 do
+			for column = self.y, self.y + self.sizeY - 1 do
 				Settings.colorMap[row][column] = 0
 			end
 		end
+		self:unselect()
 		redrawUnderlaps(self.id)
 	end
 	sizeX = sizeX or 3
@@ -1068,19 +1147,19 @@ function TextBox:resize(sizeX, sizeY)
 	end
 end
 
-function TextBox:move(x, y, relative)
+function TextBox:move(x, y, relative, anchorX, anchorY)
 	relative = relative or false
 	if (type(relative) == "boolean") then
 	else error("Expected boolean for parameter #3, got "..type(relative), 2) end
 	if not (self.hidden) then
-		self:unselect()
-		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
 		Event.unbindClickEvent(self)
-		for row = 1, self.sizeX do
-			for column = 1, self.sizeY do
+		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
+		for row = self.x, self.x + self.sizeX - 1 do
+			for column = self.y, self.y + self.sizeY - 1 do
 				Settings.colorMap[row][column] = 0
 			end
 		end
+		self:unselect()
 		redrawUnderlaps(self.id)
 	end
 	if (relative) then
@@ -1097,6 +1176,18 @@ function TextBox:move(x, y, relative)
 		y = y or 1
 		if (type(y) == "number") then self.y = y
 		else error("Expected number for parameter #2, got "..type(y), 2) end
+		anchorX = anchorX or "left"
+		if (type(anchorX) ~= "string") then error("Expected string for arg #4, got "..type(anchorX), 2) end
+		local lowerAX = string.lower(anchorX)
+		if (lowerAX == "middle") then x = Settings.midX + x
+		elseif (lowerAX == "right") then x = Settings.sizeX + x
+		elseif (lowerAX ~= "left") then error(anchorX.." is not an accepted x axis anchor", 2) end
+		anchorY = anchorY or "top"
+		if (type(anchorY) ~= "string") then error("Expected string for arg #6, got "..type(anchorY), 2) end
+		local lowerAY = string.lower(anchorY)
+		if (lowerAY == "middle") then y = Settings.midY + y
+		elseif (lowerAY == "bottom") then y = Settings.sizeY + y
+		elseif (lowerAY ~= "top") then error(anchorY.." is not an accepted y axis anchor", 2) end
 	end
 	if not (self.hidden) then
 		self:draw()
@@ -1114,14 +1205,14 @@ end
 
 function TextBox:hide()
 	if not (self.hidden) then
-		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
 		Event.unbindClickEvent(self)
-		self:unselect()
-		for row = 1, self.sizeX do
-			for column = 1, self.sizeY do
+		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
+		for row = self.x, self.x + self.sizeX - 1 do
+			for column = self.y, self.y + self.sizeY - 1 do
 				Settings.colorMap[row][column] = 0
 			end
 		end
+		self:unselect()
 		redrawUnderlaps(self.id)
 		redrawOverlaps(self.id)
 		self.hidden = true
@@ -1158,9 +1249,9 @@ function TextBox:draw()
 		end
 	else
 		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, self.textBoxColor)
-		for row = 1, self.sizeX do
-			for column = 1, self.sizeY do
-				Settings.colorMap[self.x + row - 1][self.y + column - 1] = self.textBoxColor
+		for row = self.x, self.x + self.sizeX - 1 do
+			for column = self.y, self.y + self.sizeY - 1 do
+				Settings.colorMap[row][column] = self.textBoxColor
 			end
 		end
 		term.setBackgroundColor(self.textBoxColor)
@@ -1184,12 +1275,12 @@ function TextBox:delete(overrideRedraw)
 	if (self.editable) then self:unselect() end
 	Event.unbindClickEvent(self)
 	if not (overrideRedraw) then
-		for row = 1, self.sizeX do
-			for column = 1, self.sizeY do
+		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
+		for row = self.x, self.x + self.sizeX - 1 do
+			for column = self.y, self.y + self.sizeY - 1 do
 				Settings.colorMap[row][column] = 0
 			end
 		end
-		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
 		redrawUnderlaps(self.id)
 		redrawOverlaps(self.id)
 	end
@@ -1226,12 +1317,24 @@ path (String): Path to an image file (When using "image" as background)
 lifetime (Int): Determines how long button will appear before deleting itself (0 disables lifetime)
 overrideObject (Boolean): Doesn't add object to the global object list (Useful for sub-objects or third party display functions)
 --]]
-function Button:new(x, y, sizeX, sizeY)
+function Button:new(x, y, sizeX, sizeY, anchorX, anchorY)
 	self.__index = self
 	if (type(x) ~= "number") then error("Expected number for arg #1, got "..type(x), 2) end
 	if (type(y) ~= "number") then error("Expected number for arg #2, got "..type(y), 2) end
 	if (type(sizeX) ~= "number") then error("Expected number for arg #3, got "..type(sizeX), 2) end
 	if (type(sizeY) ~= "number") then error("Expected number for arg #4, got "..type(sizeY), 2) end
+	anchorX = anchorX or "left"
+	if (type(anchorX) ~= "string") then error("Expected string for arg #5, got "..type(anchorX), 2) end
+	local lowerAX = string.lower(anchorX)
+	if (lowerAX == "middle") then x = Settings.midX + x
+	elseif (lowerAX == "right") then x = Settings.sizeX + x
+	elseif (lowerAX ~= "left") then error(anchorX.." is not an accepted x axis anchor", 2) end
+	anchorY = anchorY or "top"
+	if (type(anchorY) ~= "string") then error("Expected string for arg #6, got "..type(anchorY), 2) end
+	local lowerAY = string.lower(anchorY)
+	if (lowerAY == "middle") then y = Settings.midY + y
+	elseif (lowerAY == "bottom") then y = Settings.sizeY + y
+	elseif (lowerAY ~= "top") then error(anchorY.." is not an accepted y axis anchor", 2) end
 	local o = setmetatable({
 		x = x,
 		y = y,
@@ -1326,10 +1429,10 @@ function Button:setBackgroundToImage(imagePath, keepButtonSize)
 	self.background = "image"
 	if not (keepButtonSize) then
 		if not (self.hidden) then
-			paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
 			if (self.func ~= nil) then Event.unbindClickEvent(objectList[self.id]) end
-			for row = 1, self.sizeX do
-				for column = 1, self.sizeY do
+			paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
+			for row = self.x, self.x + self.sizeX - 1 do
+				for column = self.y, self.y + self.sizeY - 1 do
 					Settings.colorMap[row][column] = 0
 				end
 			end
@@ -1353,10 +1456,10 @@ end
 
 function Button:resize(sizeX, sizeY)
 	if not (self.hidden) then
-		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
 		if (self.func ~= nil) then Event.unbindClickEvent(objectList[self.id]) end
-		for row = 1, self.sizeX do
-			for column = 1, self.sizeY do
+		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
+		for row = self.x, self.x + self.sizeX - 1 do
+			for column = self.y, self.y + self.sizeY - 1 do
 				Settings.colorMap[row][column] = 0
 			end
 		end
@@ -1374,21 +1477,15 @@ function Button:resize(sizeX, sizeY)
 	end
 end
 
-function Button:move(x, y, relative)
-	term.setTextColor(colors.black)
-	for i = 1, #takenIDs do
-		term.setCursorPos(1, i)
-		term.write(objectList[takenIDs[i]].id)
-	end
-	os.sleep(1)
+function Button:move(x, y, relative, anchorX, anchorY)
 	relative = relative or false
 	if (type(relative) == "boolean") then
 	else error("Expected boolean for parameter #3, got "..type(relative), 2) end
 	if not (self.hidden) then
-		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
 		if (self.func ~= nil) then Event.unbindClickEvent(objectList[self.id]) end
-		for row = 1, self.sizeX do
-			for column = 1, self.sizeY do
+		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
+		for row = self.x, self.x + self.sizeX - 1 do
+			for column = self.y, self.y + self.sizeY - 1 do
 				Settings.colorMap[row][column] = 0
 			end
 		end
@@ -1408,6 +1505,18 @@ function Button:move(x, y, relative)
 		y = y or 1
 		if (type(y) == "number") then self.y = y
 		else error("Expected number for parameter #2, got "..type(y), 2) end
+		anchorX = anchorX or "left"
+		if (type(anchorX) ~= "string") then error("Expected string for arg #4, got "..type(anchorX), 2) end
+		local lowerAX = string.lower(anchorX)
+		if (lowerAX == "middle") then x = Settings.midX + x
+		elseif (lowerAX == "right") then x = Settings.sizeX + x
+		elseif (lowerAX ~= "left") then error(anchorX.." is not an accepted x axis anchor", 2) end
+		anchorY = anchorY or "top"
+		if (type(anchorY) ~= "string") then error("Expected string for arg #6, got "..type(anchorY), 2) end
+		local lowerAY = string.lower(anchorY)
+		if (lowerAY == "middle") then y = Settings.midY + y
+		elseif (lowerAY == "bottom") then y = Settings.sizeY + y
+		elseif (lowerAY ~= "top") then error(anchorY.." is not an accepted y axis anchor", 2) end
 	end
 	if not (self.hidden) then
 		self:draw()
@@ -1425,10 +1534,10 @@ end
 
 function Button:hide()
 	if not (self.hidden) then
-		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
 		if (self.func ~= nil) then Event.unbindClickEvent(objectList[self.id]) end
-		for row = 1, self.sizeX do
-			for column = 1, self.sizeY do
+		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
+		for row = self.x, self.x + self.sizeX - 1 do
+			for column = self.y, self.y + self.sizeY - 1 do
 				Settings.colorMap[row][column] = 0
 			end
 		end
@@ -1453,9 +1562,9 @@ function Button:draw()
 		if (self.background ~= "none") then
 			if (self.background == "fill") then
 				paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, self.fillColor)
-				for row = 1, self.sizeX do
-					for column = 1, self.sizeY do
-						Settings.colorMap[self.x + row - 1][self.y + column - 1] = self.fillColor
+				for row = self.x, self.x + self.sizeX - 1 do
+					for column = self.y, self.y + self.sizeY - 1 do
+						Settings.colorMap[row][column] = self.fillColor
 					end
 				end
 			elseif (self.background == "image") and (self.image ~= nil) then
@@ -1491,12 +1600,12 @@ function Button:delete(overrideRedraw)
 	if (type(overrideRedraw) ~= "boolean") then error("Expected boolean for parameter #1, got "..type(overrideRedraw), 2) end
 	if (self.func ~= nil) then Event.unbindClickEvent(objectList[self.id]) end
 	if not (overrideRedraw) then
-		for row = 1, self.sizeX do
-			for column = 1, self.sizeY do
+		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
+		for row = self.x, self.x + self.sizeX - 1 do
+			for column = self.y, self.y + self.sizeY - 1 do
 				Settings.colorMap[row][column] = 0
 			end
 		end
-		paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, Settings.backgroundColor)
 		redrawUnderlaps(self.id)
 		redrawOverlaps(self.id)
 	end

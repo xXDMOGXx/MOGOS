@@ -56,7 +56,7 @@ function unbindClickEvent(o, override)
     if (type(override) ~= "boolean") then error("Expected boolean for parameter #2, got "..type(override), 2) end
     local bounds = {o.x, o.sizeX, o.y, o.sizeY}
     eraseClickBinding(o.id, bounds[1], bounds[3], bounds[1] + bounds[2] - 1, bounds[3] + bounds[4] - 1, override)
-    table.remove(clickBindings, o.id)
+    clickBindings[o.id] = nil
 end
 
 function bindCharEvent(o, func, allowdDupe)
@@ -118,10 +118,6 @@ local function runtime()
             if (Settings.overrideFunctions) and not (Settings.overrideFunctionMap[x][y] == 0 or Settings.overrideFunctionMap[x][y] == nil) then
                 clickBindings[Settings.overrideFunctionMap[x][y]]()
             elseif not (Settings.overrideFunctions) and not (Settings.functionMap[x][y] == 0 or Settings.functionMap[x][y] == nil) then
-                term.setTextColor(colors.black)
-                term.setCursorPos(1, 1)
-                term.write(Settings.functionMap[x][y])
-                os.sleep(1)
                 clickBindings[Settings.functionMap[x][y]]()
             end
         elseif (event == "char") then
