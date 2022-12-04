@@ -2,20 +2,43 @@ local isRunning = false
 local clickBindings = {}
 local charBindings = {}
 local keyBindings = {}
+local timers = {}
 local loggedEventInfo = {}
+local selectedTextBox = 0
 
 function returnEventLog()
-    return loggedEventInfo[1]
+    return loggedEventInfo
+end
+
+function setSelectedTextBox(id)
+    if (type(id) ~= "number") then error("Expected number for parameter #1, got "..type(id), 2) end
+    if (id == 0) then selectedTextBox = 0
+    else
+        local o = Display.returnObject(id)
+        if (o == nil) then error("'id' is invalid: ID "..id.." is not assigned to a current object ", 2) end
+        if (o.objectName ~= "TextBox") then error("Expected TextBox for parameter #1, got "..o.objectName, 2) end
+        selectedTextBox = o.id
+    end
+end
+
+function unselectTextBox()
+    if (selectedTextBox ~= 0) then
+        local textBox = Display.returnObject(selectedTextBox)
+        if (textBox == nil) then selectedTextBox = 0
+        else textBox:unselect() end
+    end
+end
+
+function startTimer(time, func)
+    local newTimer = os.startTimer(time)
+    timers[newTimer] = func
 end
 
 local function drawClickBinding(id, x1, y1, x2, y2, override)
     for row = x1, x2 do
         for column = y1, y2 do
-            if (override) then
-                Settings.overrideFunctionMap[row][column] = id
-            else
-                Settings.functionMap[row][column] = id
-            end
+            if (override) then Settings.overrideFunctionMap[row][column] = id
+            else Settings.functionMap[row][column] = id end
         end
     end
 end
@@ -28,25 +51,22 @@ local function eraseClickBinding(id, x1, y1, x2, y2, override)
     for row = x1, x2 do
         for column = y1, y2 do
             if (override) then
-                if (Settings.overrideFunctionMap[row][column] == id) then
-                    Settings.overrideFunctionMap[row][column] = 0
-                end
-            else
-                if (Settings.functionMap[row][column] == id) then
-                    Settings.functionMap[row][column] = 0
-                end
+                if (Settings.overrideFunctionMap[row][column] == id) then Settings.overrideFunctionMap[row][column] = 0 end
+            elseif (Settings.functionMap[row][column] == id) then Settings.functionMap[row][column] = 0
             end
         end
     end
 end
 
-function bindClickEvent(o, func, override)
+function bindClickEvent(o, func, allowDrag, override)
     if (type(o) ~= "table") then error("Expected table for parameter #1, got "..type(o), 2) end
     if (type(func) ~= "function") then error("Expected function for parameter #2, got "..type(func), 2) end
+    local allowDrag = allowDrag or false
+    if (type(allowDrag) ~= "boolean") then error("Expected boolean for parameter #3, got "..type(allowDrag), 2) end
     local override = override or false
-    if (type(override) ~= "boolean") then error("Expected boolean for parameter #3, got "..type(override), 2) end
+    if (type(override) ~= "boolean") then error("Expected boolean for parameter #4, got "..type(override), 2) end
     local bounds = {o.x, o.sizeX, o.y, o.sizeY}
-    clickBindings[o.id] = func
+    clickBindings[o.id] = {func, allowDrag}
     drawClickBinding(o.id, bounds[1], bounds[3], bounds[1] + bounds[2] - 1, bounds[3] + bounds[4] - 1, override)
 end
 
@@ -114,19 +134,32 @@ local function runtime()
     while isRunning do
         local event, p1, x, y = os.pullEvent()
         if (event == "monitor_touch") or (event == "mouse_click") then
-            loggedEventInfo[1] = {event, p1, x, y}
+            loggedEventInfo = {event, p1, x, y}
+            unselectTextBox()
             if (Settings.overrideFunctions) and not (Settings.overrideFunctionMap[x][y] == 0 or Settings.overrideFunctionMap[x][y] == nil) then
-                clickBindings[Settings.overrideFunctionMap[x][y]]()
+                clickBindings[Settings.overrideFunctionMap[x][y]][1]()
             elseif not (Settings.overrideFunctions) and not (Settings.functionMap[x][y] == 0 or Settings.functionMap[x][y] == nil) then
-                clickBindings[Settings.functionMap[x][y]]()
+                clickBindings[Settings.functionMap[x][y]][1]()
+            end
+        elseif (event == "mouse_drag") then
+            loggedEventInfo = {event, p1, x, y}
+            if (Settings.overrideFunctions) and not (Settings.overrideFunctionMap[x][y] == 0 or Settings.overrideFunctionMap[x][y] == nil) then
+                if (clickBindings[Settings.overrideFunctionMap[x][y]][2]) then clickBindings[Settings.overrideFunctionMap[x][y]][1]() end
+            elseif not (Settings.overrideFunctions) and not (Settings.functionMap[x][y] == 0 or Settings.functionMap[x][y] == nil) then
+                if (clickBindings[Settings.functionMap[x][y]][2]) then clickBindings[Settings.functionMap[x][y]][1]() end
             end
         elseif (event == "char") then
-            loggedEventInfo[1] = {event, p1}
+            loggedEventInfo = {event, p1}
             for i = 1, #charBindings do charBindings[i][2]() end
         elseif (event == "key") then
-            loggedEventInfo[1] = {event, p1}
+            loggedEventInfo = {event, p1}
             if (keyBindings[p1] ~= nil) then
                 for i = 1, #keyBindings[p1] do keyBindings[p1][i][2]() end
+            end
+        elseif (event == "timer") then
+            if (timers[p1] ~= nil) then
+                timers[p1]()
+                timers[p1] = nil
             end
         end
     end
@@ -137,6 +170,6 @@ function startRuntime()
     runtime()
 end
 
-function endRuntime()
+function stopRuntime()
     isRunning = false
 end

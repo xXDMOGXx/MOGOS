@@ -30,20 +30,15 @@ end
 local function readFileData(path, line)
 	local line = line or "all"
 	if (fs.exists(path)) then
-		local file = fs.open(path,"r")
+		local file = fs.open(path, "r")
 		local data
-		if (line == "all") then
-			data = file.readAll()
+		if (line == "all") then data = file.readAll()
 		else
-			for _ = 1, line do
-				data = file.readLine()
-			end
+			for _ = 1, line do data = file.readLine() end
 		end
 		file.close()
 		return data
-	else
-		return false
-	end
+	else return false end
 end
 
 function findParam(dataString)
@@ -62,12 +57,10 @@ function findParam(dataString)
 	return func, param
 end
 
-function emptyCheck()
+function emptyCheck(map)
 	for row = 1, Settings.sizeX do
 		for column = 1, Settings.sizeY do
-			if not (Settings.paintMap[row][column] == 0) then
-				return false
-			end
+			if (map[row][column] ~= 0) then return false end
 		end
 	end
 	return true
@@ -114,20 +107,12 @@ function returnObject(id)
 	return objectList[id]
 end
 
-function checkCollisions(checkObject, objectList)
+function checkCollisions(checkObject, checkList)
 	local collisions = {}
-	for i=1, #objectList do
-		if (objectList[i][3] >= checkObject[3]) and (objectList[i][3] <= checkObject[3] + checkObject[4] - 1) then
-			if (objectList[i][1] >= checkObject[1]) and (objectList[i][1] <= checkObject[1] + checkObject[2] - 1) then
-				table.insert(collisions, objectList[i])
-			elseif (objectList[i][1] + objectList[i][2] >= checkObject[1]) and (objectList[i][1] + objectList[i][2] <= checkObject[1] + checkObject[2] - 1) then
-				table.insert(collisions, objectList[i])
-			end
-		elseif (objectList[i][3] + objectList[i][4] >= checkObject[3]) and (objectList[i][3] + objectList[i][4] <= checkObject[3] + checkObject[4] - 1) then
-			if (objectList[i][1] >= checkObject[1]) and (objectList[i][1] <= checkObject[1] + checkObject[2] - 1) then
-				table.insert(collisions, objectList[i])
-			elseif (objectList[i][1] + objectList[i][2] >= checkObject[1]) and (objectList[i][1] + objectList[i][2] <= checkObject[1] + checkObject[2] - 1) then
-				table.insert(collisions, objectList[i])
+	for i=1, #checkList do
+		if ((checkObject[2] <= checkList[i][2]) and (checkObject[4] >= checkList[i][2])) or ((checkObject[2] <= checkList[i][4]) and (checkObject[2] >= checkList[i][2])) then
+			if ((checkObject[1] <= checkList[i][1]) and (checkObject[3] >= checkList[i][1])) or ((checkObject[1] <= checkList[i][3]) and (checkObject[1] >= checkList[i][1])) then
+				table.insert(collisions, checkList[i])
 			end
 		end
 	end
@@ -144,13 +129,12 @@ end
 
 function drawScreen()
 	for i=1, #takenIDs do
-		if not (objectList[takenIDs[i]].hidden) then
-			objectList[takenIDs[i]]:draw()
-		end
+		if not (objectList[takenIDs[i]].hidden) then objectList[takenIDs[i]]:draw() end
 	end
 end
 
 function clearScreen()
+	Event.setSelectedTextBox(0)
 	local numIDs = #takenIDs
 	for i=#takenIDs, 1, -1 do
 		local temp = numIDs
@@ -167,7 +151,7 @@ function clearScreen()
 end
 
 local function redrawUnderlaps(id)
-	local bounds = {objectList[id].x, objectList[id].sizeX, objectList[id].y, objectList[id].sizeY}
+	local bounds = {objectList[id].x, objectList[id].y, objectList[id].x + objectList[id].sizeX - 1, objectList[id].y + objectList[id].sizeY - 1}
 	local checkList = {}
 	local underlaps = {}
 	if (takenIDs[1] ~= id) then
@@ -175,137 +159,43 @@ local function redrawUnderlaps(id)
 			if (takenIDs[i] == id) then break end
 			local checkObject = objectList[takenIDs[i]]
 			if not (checkObject.hidden) then
-				table.insert(checkList, {checkObject.x, checkObject.sizeX, checkObject.y, checkObject.sizeY, takenIDs[i]})
+				table.insert(checkList, {checkObject.x, checkObject.y, checkObject.x + checkObject.sizeX - 1, checkObject.y + checkObject.sizeY - 1, checkObject.id})
 			end
 		end
-		if (#checkList >= 1) then
+		if (#checkList > 0) then
 			underlaps = checkCollisions(bounds, checkList)
 			for i=1, #underlaps do
-				objectList[underlaps[i][5]]:draw()
+				local objectName = objectList[underlaps[i][5]].objectName
+				if (objectName == "Fill") or (objectName == "Image") then
+					objectList[underlaps[i][5]]:partialDraw(bounds[1], bounds[2], bounds[3], bounds[4])
+				else objectList[underlaps[i][5]]:draw() end
 			end
 		end
 	end
 end
 
 local function redrawOverlaps(id)
-	local bounds = {objectList[id].x, objectList[id].sizeX, objectList[id].y, objectList[id].sizeY}
+	local bounds = {objectList[id].x, objectList[id].y, objectList[id].x + objectList[id].sizeX - 1, objectList[id].y + objectList[id].sizeY - 1}
 	local checkList = {}
 	local overlaps = {}
-	if (objectList[-1] ~= id) then
+	if (takenIDs[-1] ~= id) then
 		for i=#takenIDs , 1, -1 do
 			if (takenIDs[i] == id) then break end
 			local checkObject = objectList[takenIDs[i]]
 			if not (checkObject.hidden) then
-				table.insert(checkList, {checkObject.x, checkObject.sizeX, checkObject.y, checkObject.sizeY, takenIDs[i]})
+				table.insert(checkList, {checkObject.x, checkObject.y, checkObject.x + checkObject.sizeX - 1, checkObject.y + checkObject.sizeY - 1, checkObject.id})
 			end
 		end
-		if (#checkList >= 1) then
+		if (#checkList > 0) then
 			overlaps = checkCollisions(bounds, checkList)
 			for i=1, #overlaps do
-				objectList[overlaps[i][5]]:draw()
+				local objectName = objectList[overlaps[i][5]].objectName
+				if (objectName == "Fill") or (objectName == "Image") then
+					objectList[overlaps[i][5]]:partialDraw(bounds[1], bounds[2], bounds[3], bounds[4])
+				else objectList[overlaps[i][5]]:draw() end
 			end
 		end
 	end
-end
-
-function saveImage(path, x, y, w, z, isSelImage)
-	local tColorX = x or 0
-	local tColorY = y or 0
-	local bColorX = w or 0
-	local bColorY = z or 0
-	local isFullImage = isSelImage or false
-	local color
-	local nextColor
-	local numColor = 1
-	local file = fs.open(path,"w")
-	if not (isFullImage) then
-		for column = 1, Settings.sizeY do
-			local isBreak = false
-			for row = 1, Settings.sizeX do
-				if not (Settings.paintMap[row][column] == 0) then
-					tColorY = column
-					isBreak = true
-					break
-				end
-				if (isBreak) then
-					break
-				end
-			end
-			if (isBreak) then
-				break
-			end
-		end
-		for row = 1, Settings.sizeX do
-			local isBreak = false
-			for column = 1, Settings.sizeY do
-				if not (Settings.paintMap[row][column] == 0) then
-					tColorX = row
-					isBreak = true
-					break
-				end
-				if (isBreak) then
-					break
-				end
-			end
-			if (isBreak) then
-				break
-			end
-		end
-		for column = Settings.sizeY, 1, -1 do
-			local isBreak = false
-			for row = Settings.sizeX, 1, -1 do
-				if not (Settings.paintMap[row][column] == 0) then
-					bColorY = column
-					isBreak = true
-					break
-				end
-				if (isBreak) then
-					break
-				end
-			end
-			if (isBreak) then
-				break
-			end
-		end
-		for row = Settings.sizeX, 1, -1 do
-			local isBreak = false
-			for column = Settings.sizeY, 1, -1 do
-				if not (Settings.paintMap[row][column] == 0) then
-					bColorX = row
-					isBreak = true
-					break
-				end
-				if (isBreak) then
-					break
-				end
-			end
-			if (isBreak) then
-				break
-			end
-		end
-	end
-	file.write("X"..tColorX.."Y"..tColorY.."W"..bColorX.."Z"..bColorY)
-	for row = tColorX, bColorX do
-		for column = tColorY, bColorY do
-			if (Settings.paintMap[row][column] == nil) then
-				nextColor = "0"
-			else
-				nextColor = tostring(Settings.paintMap[row][column])
-			end
-			if (color == nextColor) then
-				numColor = numColor + 1
-			elseif not (color == nil) then
-				file.write("C"..color)
-				file.write("N"..tostring(numColor))
-				numColor = 1
-			end
-			color = nextColor
-		end
-	end
-	file.write("C"..color)
-	file.write("N"..tostring(numColor))
-	file.write("E")
-	file.close()
 end
 
 --[[
@@ -357,6 +247,38 @@ local function decompressImage(imageString, sizeX, sizeY)
 	return image
 end
 
+function loadRawImage(path, requestPos)
+	requestPos = requestPos or false
+	local file = fs.open(path, "r")
+	local data = file.readAll()
+	file.close()
+	local ox, oy, ix, iy, imageString
+	local lastLetterPos = 1
+	for loc = 1, #data do
+		local char = string.sub(data, loc, loc)
+		if (char == "Y") then
+			local numberString = string.sub(data, 2, loc - 1)
+			ox = tonumber(numberString)
+			lastLetterPos = loc
+		elseif (char == "W") then
+			local numberPos = loc - (lastLetterPos + 1)
+			local numberString = string.sub(data, loc - numberPos, loc - 1)
+			oy = tonumber(numberString)
+			lastLetterPos = loc
+		elseif (char == "Z") then
+			local numberPos = loc - (lastLetterPos + 1)
+			local numberString = string.sub(data, loc - numberPos, loc - 1)
+			ix = tonumber(numberString) - ox + 1
+			lastLetterPos = loc
+		elseif (char == "C") then
+			local numberPos = loc - (lastLetterPos + 1)
+			local numberString = string.sub(data, loc - numberPos, loc - 1)
+			iy = tonumber(numberString) - oy + 1
+			if (requestPos) then return {ox, oy, decompressImage(string.sub(data, loc - 1, -1), ix, iy)}
+			else return decompressImage(string.sub(data, loc - 1, -1), ix, iy) end
+		end
+	end
+end
 
 --[[
 Allows you to display a rectangle of color
@@ -381,13 +303,13 @@ function Fill:new(x, y, sizeX, sizeY, anchorX, anchorY)
 	if (type(anchorX) ~= "string") then error("Expected string for arg #5, got "..type(anchorX), 2) end
 	local lowerAX = string.lower(anchorX)
 	if (lowerAX == "middle") then x = Settings.midX + x
-	elseif (lowerAX == "right") then x = Settings.sizeX + x
+	elseif (lowerAX == "right") then x = Settings.sizeX + x + 1
 	elseif (lowerAX ~= "left") then error(anchorX.." is not an accepted x axis anchor", 2) end
 	anchorY = anchorY or "top"
 	if (type(anchorY) ~= "string") then error("Expected string for arg #6, got "..type(anchorY), 2) end
 	local lowerAY = string.lower(anchorY)
 	if (lowerAY == "middle") then y = Settings.midY + y
-	elseif (lowerAY == "bottom") then y = Settings.sizeY + y
+	elseif (lowerAY == "bottom") then y = Settings.sizeY + y + 1
 	elseif (lowerAY ~= "top") then error(anchorY.." is not an accepted y axis anchor", 2) end
 	local o = setmetatable({
 		x = x,
@@ -466,13 +388,13 @@ function Fill:move(x, y, relative, anchorX, anchorY)
 		if (type(anchorX) ~= "string") then error("Expected string for arg #4, got "..type(anchorX), 2) end
 		local lowerAX = string.lower(anchorX)
 		if (lowerAX == "middle") then x = Settings.midX + x
-		elseif (lowerAX == "right") then x = Settings.sizeX + x
+		elseif (lowerAX == "right") then x = Settings.sizeX + x + 1
 		elseif (lowerAX ~= "left") then error(anchorX.." is not an accepted x axis anchor", 2) end
 		anchorY = anchorY or "top"
 		if (type(anchorY) ~= "string") then error("Expected string for arg #6, got "..type(anchorY), 2) end
 		local lowerAY = string.lower(anchorY)
 		if (lowerAY == "middle") then y = Settings.midY + y
-		elseif (lowerAY == "bottom") then y = Settings.sizeY + y
+		elseif (lowerAY == "bottom") then y = Settings.sizeY + y + 1
 		elseif (lowerAY ~= "top") then error(anchorY.." is not an accepted y axis anchor", 2) end
 	end
 	if not (self.hidden) then
@@ -532,8 +454,8 @@ function Fill:partialDraw(x1, y1, x2, y2)
 	if (type(y2) ~= "number") then error("Expected number for arg #4, got "..type(y2), 2) end
 	if (self.fillColor ~= 0) then
 		local dx1, dy1, dx2, dy2
-		if (x1 >= self.x) then dx1 = self.x else dx1 = x1 end
-		if (y1 >= self.y) then dy1 = self.y else dy1 = y1 end
+		if (x1 <= self.x) then dx1 = self.x else dx1 = x1 end
+		if (y1 <= self.y) then dy1 = self.y else dy1 = y1 end
 		if (x2 >= self.x + self.sizeX - 1) then dx2 = self.x + self.sizeX - 1 else dx2 = x2 end
 		if (y2 >= self.y + self.sizeY - 1) then dy2 = self.y + self.sizeY - 1 else dy2 = y2 end
 		paintutils.drawFilledBox(dx1, dy1, dx2, dy2, self.fillColor)
@@ -585,13 +507,13 @@ function Image:new(x, y, anchorX, anchorY)
 	if (type(anchorX) ~= "string") then error("Expected string for arg #3, got "..type(anchorX), 2) end
 	local lowerAX = string.lower(anchorX)
 	if (lowerAX == "middle") then x = Settings.midX + x
-	elseif (lowerAX == "right") then x = Settings.sizeX + x
+	elseif (lowerAX == "right") then x = Settings.sizeX + x + 1
 	elseif (lowerAX ~= "left") then error(anchorX.." is not an accepted x axis anchor", 2) end
 	anchorY = anchorY or "top"
 	if (type(anchorY) ~= "string") then error("Expected string for arg #6, got "..type(anchorY), 2) end
 	local lowerAY = string.lower(anchorY)
 	if (lowerAY == "middle") then y = Settings.midY + y
-	elseif (lowerAY == "bottom") then y = Settings.sizeY + y
+	elseif (lowerAY == "bottom") then y = Settings.sizeY + y + 1
 	elseif (lowerAY ~= "top") then error(anchorY.." is not an accepted y axis anchor", 2) end
 	local o = setmetatable({
 		x = x,
@@ -691,13 +613,13 @@ function Image:move(x, y, relative, anchorX, anchorY)
 		if (type(anchorX) ~= "string") then error("Expected string for arg #4, got "..type(anchorX), 2) end
 		local lowerAX = string.lower(anchorX)
 		if (lowerAX == "middle") then x = Settings.midX + x
-		elseif (lowerAX == "right") then x = Settings.sizeX + x
+		elseif (lowerAX == "right") then x = Settings.sizeX + x + 1
 		elseif (lowerAX ~= "left") then error(anchorX.." is not an accepted x axis anchor", 2) end
 		anchorY = anchorY or "top"
 		if (type(anchorY) ~= "string") then error("Expected string for arg #6, got "..type(anchorY), 2) end
 		local lowerAY = string.lower(anchorY)
 		if (lowerAY == "middle") then y = Settings.midY + y
-		elseif (lowerAY == "bottom") then y = Settings.sizeY + y
+		elseif (lowerAY == "bottom") then y = Settings.sizeY + y + 1
 		elseif (lowerAY ~= "top") then error(anchorY.." is not an accepted y axis anchor", 2) end
 	end
 	if not (self.hidden) then
@@ -759,8 +681,8 @@ function Image:partialDraw(x1, y1, x2, y2)
 	if (type(y2) ~= "number") then error("Expected number for arg #4, got "..type(y2), 2) end
 	if (self.image ~= nil) then
 		local dx1, dy1, dx2, dy2
-		if (x1 >= self.x) then dx1 = self.x else dx1 = x1 end
-		if (y1 >= self.y) then dy1 = self.y else dy1 = y1 end
+		if (x1 <= self.x) then dx1 = self.x else dx1 = x1 end
+		if (y1 <= self.y) then dy1 = self.y else dy1 = y1 end
 		if (x2 >= self.x + self.sizeX - 1) then dx2 = self.x + self.sizeX - 1 else dx2 = x2 end
 		if (y2 >= self.y + self.sizeY - 1) then dy2 = self.y + self.sizeY - 1 else dy2 = y2 end
 		for row = dx1, dx2 do
@@ -835,13 +757,13 @@ function TextBox:new(x, y, sizeX, sizeY, anchorX, anchorY)
 	if (type(anchorX) ~= "string") then error("Expected string for arg #5, got "..type(anchorX), 2) end
 	local lowerAX = string.lower(anchorX)
 	if (lowerAX == "middle") then x = Settings.midX + x
-	elseif (lowerAX == "right") then x = Settings.sizeX + x
+	elseif (lowerAX == "right") then x = Settings.sizeX + x + 1
 	elseif (lowerAX ~= "left") then error(anchorX.." is not an accepted x axis anchor", 2) end
 	anchorY = anchorY or "top"
 	if (type(anchorY) ~= "string") then error("Expected string for arg #6, got "..type(anchorY), 2) end
 	local lowerAY = string.lower(anchorY)
 	if (lowerAY == "middle") then y = Settings.midY + y
-	elseif (lowerAY == "bottom") then y = Settings.sizeY + y
+	elseif (lowerAY == "bottom") then y = Settings.sizeY + y + 1
 	elseif (lowerAY ~= "top") then error(anchorY.." is not an accepted y axis anchor", 2) end
 	local o = setmetatable({
 		x = x,
@@ -924,6 +846,7 @@ end
 -- Will only run if text box allows scrolling or is editable
 function TextBox:select()
 	if not (self.selected) then
+		Event.setSelectedTextBox(self.id)
 		if (self.defaultText ~= "") and (self.text == "") then paintutils.drawFilledBox(self.x, self.y, self.x + self.sizeX - 1, self.y + self.sizeY - 1, self.textBoxColor) end
 		term.setTextColor(self.textColor)
 		term.setBackgroundColor(self.textBoxColor)
@@ -945,6 +868,7 @@ end
 -- Unbinds edit specific events if text box is editable
 function TextBox:unselect()
 	if (self.selected) then
+		Event.setSelectedTextBox(0)
 		term.setCursorBlink(false)
 		self.selected = false
 		if (self.editable) then
@@ -1180,13 +1104,13 @@ function TextBox:move(x, y, relative, anchorX, anchorY)
 		if (type(anchorX) ~= "string") then error("Expected string for arg #4, got "..type(anchorX), 2) end
 		local lowerAX = string.lower(anchorX)
 		if (lowerAX == "middle") then x = Settings.midX + x
-		elseif (lowerAX == "right") then x = Settings.sizeX + x
+		elseif (lowerAX == "right") then x = Settings.sizeX + x + 1
 		elseif (lowerAX ~= "left") then error(anchorX.." is not an accepted x axis anchor", 2) end
 		anchorY = anchorY or "top"
 		if (type(anchorY) ~= "string") then error("Expected string for arg #6, got "..type(anchorY), 2) end
 		local lowerAY = string.lower(anchorY)
 		if (lowerAY == "middle") then y = Settings.midY + y
-		elseif (lowerAY == "bottom") then y = Settings.sizeY + y
+		elseif (lowerAY == "bottom") then y = Settings.sizeY + y + 1
 		elseif (lowerAY ~= "top") then error(anchorY.." is not an accepted y axis anchor", 2) end
 	end
 	if not (self.hidden) then
@@ -1327,13 +1251,13 @@ function Button:new(x, y, sizeX, sizeY, anchorX, anchorY)
 	if (type(anchorX) ~= "string") then error("Expected string for arg #5, got "..type(anchorX), 2) end
 	local lowerAX = string.lower(anchorX)
 	if (lowerAX == "middle") then x = Settings.midX + x
-	elseif (lowerAX == "right") then x = Settings.sizeX + x
+	elseif (lowerAX == "right") then x = Settings.sizeX + x + 1
 	elseif (lowerAX ~= "left") then error(anchorX.." is not an accepted x axis anchor", 2) end
 	anchorY = anchorY or "top"
 	if (type(anchorY) ~= "string") then error("Expected string for arg #6, got "..type(anchorY), 2) end
 	local lowerAY = string.lower(anchorY)
 	if (lowerAY == "middle") then y = Settings.midY + y
-	elseif (lowerAY == "bottom") then y = Settings.sizeY + y
+	elseif (lowerAY == "bottom") then y = Settings.sizeY + y + 1
 	elseif (lowerAY ~= "top") then error(anchorY.." is not an accepted y axis anchor", 2) end
 	local o = setmetatable({
 		x = x,
@@ -1349,12 +1273,14 @@ function Button:new(x, y, sizeX, sizeY, anchorX, anchorY)
 	return o
 end
 
-function Button:onClick(func)
+function Button:onClick(func, allowDrag)
+	if (type(func) ~= "function") then error("Expected function for arg #1, got "..type(func), 2) end
+	local allowDrag = allowDrag or false
+	if (type(allowDrag) ~= "boolean") then error("Expected boolean for arg #2, got "..type(allowDrag), 2) end
 	if (self.func ~= nil) then Event.unbindClickEvent(objectList[self.id]) end
-	if (type(func) == "function") then
-		self.func = func
-		Event.bindClickEvent(objectList[self.id], self.func)
-	else error("Expected function for arg #1, got "..type(func), 2) end
+	self.func = func
+	self.allowDrag = allowDrag
+	Event.bindClickEvent(objectList[self.id], self.func, self.allowDrag)
 end
 
 function Button:setText(text, textColor, textBoxColor)
@@ -1509,13 +1435,13 @@ function Button:move(x, y, relative, anchorX, anchorY)
 		if (type(anchorX) ~= "string") then error("Expected string for arg #4, got "..type(anchorX), 2) end
 		local lowerAX = string.lower(anchorX)
 		if (lowerAX == "middle") then x = Settings.midX + x
-		elseif (lowerAX == "right") then x = Settings.sizeX + x
+		elseif (lowerAX == "right") then x = Settings.sizeX + x + 1
 		elseif (lowerAX ~= "left") then error(anchorX.." is not an accepted x axis anchor", 2) end
 		anchorY = anchorY or "top"
 		if (type(anchorY) ~= "string") then error("Expected string for arg #6, got "..type(anchorY), 2) end
 		local lowerAY = string.lower(anchorY)
 		if (lowerAY == "middle") then y = Settings.midY + y
-		elseif (lowerAY == "bottom") then y = Settings.sizeY + y
+		elseif (lowerAY == "bottom") then y = Settings.sizeY + y + 1
 		elseif (lowerAY ~= "top") then error(anchorY.." is not an accepted y axis anchor", 2) end
 	end
 	if not (self.hidden) then
@@ -1581,7 +1507,7 @@ function Button:draw()
 		if (self.text ~= nil) then
 			local midX = self.x + math.ceil(self.sizeX / 2) - 1
 			local midY = self.y + math.ceil(self.sizeY / 2) - 1
-			local textX = midX - math.floor(#self.text / 2)
+			local textX = midX - math.floor((#self.text - 1) / 2)
 			if (self.text ~= "") and not (textX + #self.text - 1 > Settings.sizeX) then
 				term.setTextColor(self.textColor)
 				term.setBackgroundColor(self.textBoxColor)
@@ -1590,7 +1516,7 @@ function Button:draw()
 				for i = 1, #self.text do Settings.colorMap[textX + i - 1][midY] = self.textBoxColor end
 			end
 		end
-		if (self.func ~= nil) then Event.bindClickEvent(objectList[self.id], self.func) end
+		if (self.func ~= nil) then Event.bindClickEvent(objectList[self.id], self.func, self.allowDrag) end
 	end
 end
 

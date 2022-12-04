@@ -12,22 +12,19 @@ sizeX, sizeY = term.getSize()
 midX = math.ceil(sizeX / 2)
 midY = math.ceil(sizeY / 2)
 
-DEFAULT_BACKGROUND_COLOR = 256
-backgroundColor = DEFAULT_BACKGROUND_COLOR
-DEFAULT_UI_COLOR_1 = 1
-uiColor1 = DEFAULT_UI_COLOR_1
-DEFAULT_UI_COLOR_2 = 128
-uiColor2 = DEFAULT_UI_COLOR_2
+backgroundColor = colors.lightGray
+uiColor1 = colors.white
+uiColor2 = colors.gray
 
 colorMap = {}
 functionMap = {}
 overrideFunctionMap = {}
-paintMap = {}
 
 appExt = ".app"
 prgExt = ".prg"
 apiExt = ".lua"
 setExt = ".set"
+navExt = ".nav"
 picExt = ".pic"
 anmExt = ".anm"
 vidExt = ".vid"
